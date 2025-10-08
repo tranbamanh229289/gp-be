@@ -1,0 +1,74 @@
+server:
+    host: "localhost"
+    port: 8080
+    env: "development"
+
+postgres:
+    host: "localhost"
+    port: 5432
+    name: "myapp"
+    user: ""
+    password: ""
+    sslmode: "disable"
+    max_connections: 20
+
+mongo:
+    uri: "mongodb://localhost:27017"
+    database: "myapp"
+    username: ""
+    password: ""
+    max_pool_size: 20
+    min_pool_size: 5
+    timeout: 10
+
+elasticsearch:
+    host: "localhost"
+    port: 9200
+    username: ""
+    password: ""
+    sniff: false
+
+redis:
+    host: "localhost"
+    port: 6379
+    password: ""
+    db: 0
+    max_connections: 20
+    timeout: 30
+
+rabbitmq:
+    host: "localhost"
+    port: "5672"
+    username: ""
+    password: ""
+    vhost: "/"
+    prefetch_count: 10 #consumer
+    connection_timeout: 30
+    heartbeat: 60
+    reconnect_delay: 5
+
+kafka:
+    broker:
+        - "localhost:9200"
+        - "localhost:9201"
+    producer:
+        acks: "1" #make sure write to leader partition
+        compression_type: "gzip"
+        max_in_flight_requests: 5 #high throughput
+        idempotent: true #avoid duplicate when producer retry message to broker
+        retry_max: 3
+        retry_backoff_ms: 200
+    consumer:
+        group_id: "order_process"
+        topics:
+            - "orders"
+        max_poll_records: 500 #high throughput
+        auto_offset_reset: "earliest" #consumer unknown offset
+        enable_auto_commit: false #consumer don't auto commit offset
+        session_timeout_ms: 10000 #heartbeat time
+    connection:
+        timeout: 30000
+        keep_alive_ms: 60000
+    security:
+        enabled: true
+        protocol: "sasl_ssl"
