@@ -1,4 +1,4 @@
-BINARY_NAME=graduate-project
+BINARY_NAME=be
 BUILD_DIR=bin
 GQLGEN=github.com/99designs/gqlgen
 

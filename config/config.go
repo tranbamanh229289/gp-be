@@ -66,6 +66,12 @@ type RabbitMQConfig struct {
 
 }
 
+type JwtConfig struct {
+	Secret string
+	AccessTokenTTL time.Duration
+	RefreshTokenTTL time.Duration
+}
+
 type Config struct {
 	Server ServerConfig
 	Postgres PostgresConfig
@@ -73,6 +79,7 @@ type Config struct {
 	Elasticsearch ElasticsearchConfig
 	Redis RedisConfig
 	RabbitMQ RabbitMQConfig
+	JwtConfig JwtConfig
 }
 
 
@@ -144,6 +151,11 @@ func LoadConfig()(*Config, error) {
 			ConnectionTimeout: viper.GetInt("rabbitmq.connection_timeout"),
 			HeartBeat: viper.GetInt("rabbitmq.heartbeat"),
 			ReconnectDelay: viper.GetInt("rabbitmq.reconnect_delay"),
+		},
+		JwtConfig: JwtConfig{
+			Secret: viper.GetString("jwt.secret"),
+			AccessTokenTTL: viper.GetDuration("jwt.access_token_ttl"),
+			RefreshTokenTTL: viper.GetDuration("jwt.refresh_token_ttl"),
 		},
 		
 	}

@@ -1,6 +1,6 @@
 package auth
 
-import "graduate-project/internal/domain/auth"
+import "be/internal/domain/auth"
 
 type UserService struct {
 	repo auth.UserRepository

@@ -1,7 +1,7 @@
 package elasticsearch
 
 import (
-	"graduate-project/config"
+	"be/config"
 	"log"
 
 	"github.com/elastic/go-elasticsearch/v8"

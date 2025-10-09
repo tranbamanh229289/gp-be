@@ -1,8 +1,8 @@
 package main
 
 import (
+	"be/internal/transport/graph"
 	"context"
-	"graduate-project/internal/transport/graph"
 	"log"
 	"net/http"
 	"os"

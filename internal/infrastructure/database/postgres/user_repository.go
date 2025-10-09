@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"graduate-project/internal/domain/auth"
-	"graduate-project/pkg/logger"
+	"be/internal/domain/auth"
+	"be/pkg/logger"
 
 	"gorm.io/gorm"
 )

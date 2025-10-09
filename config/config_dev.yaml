@@ -2,6 +2,12 @@ server:
     host: "localhost"
     port: 8080
     env: "development"
+    graphql:
+        host: "localhost"
+        port: 8081
+    websocket:
+        host: "localhost"
+        port: 8082
 
 postgres:
     host: "localhost"
@@ -42,33 +48,12 @@ rabbitmq:
     username: ""
     password: ""
     vhost: "/"
-    prefetch_count: 10 #consumer
+    prefetch_count: 10
     connection_timeout: 30
     heartbeat: 60
     reconnect_delay: 5
 
-kafka:
-    broker:
-        - "localhost:9200"
-        - "localhost:9201"
-    producer:
-        acks: "1" #make sure write to leader partition
-        compression_type: "gzip"
-        max_in_flight_requests: 5 #high throughput
-        idempotent: true #avoid duplicate when producer retry message to broker
-        retry_max: 3
-        retry_backoff_ms: 200
-    consumer:
-        group_id: "order_process"
-        topics:
-            - "orders"
-        max_poll_records: 500 #high throughput
-        auto_offset_reset: "earliest" #consumer unknown offset
-        enable_auto_commit: false #consumer don't auto commit offset
-        session_timeout_ms: 10000 #heartbeat time
-    connection:
-        timeout: 30000
-        keep_alive_ms: 60000
-    security:
-        enabled: true
-        protocol: "sasl_ssl"
+jwt:
+    secret: ""
+    access_token_ttl: 100
+    refresh_token_ttl: 100

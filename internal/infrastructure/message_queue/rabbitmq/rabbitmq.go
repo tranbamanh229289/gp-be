@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"graduate-project/config"
+	"be/config"
 	"log"
 
 	"github.com/rabbitmq/amqp091-go"

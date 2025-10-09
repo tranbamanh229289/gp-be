@@ -1,8 +1,8 @@
 package mongo
 
 import (
+	"be/config"
 	"context"
-	"graduate-project/config"
 	"log"
 	"time"
 

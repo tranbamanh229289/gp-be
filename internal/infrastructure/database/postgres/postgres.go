@@ -1,8 +1,8 @@
 package postgres
 
 import (
+	"be/config"
 	"database/sql"
-	"graduate-project/config"
 	"log"
 
 	"gorm.io/driver/postgres"

@@ -3,12 +3,12 @@
 package graph
 
 import (
+	"be/internal/transport/graph/model"
 	"bytes"
 	"context"
 	"embed"
 	"errors"
 	"fmt"
-	"graduate-project/internal/transport/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
