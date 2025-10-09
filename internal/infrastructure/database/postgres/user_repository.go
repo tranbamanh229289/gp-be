@@ -2,14 +2,12 @@ package postgres
 
 import (
 	"be/internal/domain/auth"
-	"be/pkg/logger"
 
 	"gorm.io/gorm"
 )
 
 type UserGormRepository struct {
 	db *gorm.DB
-	logger logger.Logger
 }
 
 func (r *UserGormRepository) FindById(id int64) (*auth.User, error) {

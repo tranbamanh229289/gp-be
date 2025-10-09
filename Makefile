@@ -2,7 +2,7 @@ BINARY_NAME=be
 BUILD_DIR=bin
 GQLGEN=github.com/99designs/gqlgen
 
-#app
+#service
 run: 
 	@echo "🌐 Starting $(BINARY_NAME)..."
 	go run ./cmd/api
@@ -12,6 +12,15 @@ build:
 clean:
 	@echo "🧼 Cleaning ${BINARY_NAME} app..."
 	rm -rf -o ${BUILD_DIR}
+
+#docker
+infra: 
+	docker compose -f docker-compose-infra.yml -d
+
+dev:
+	docker compose -f docker-compose-dev.yml -d
+	
+#wire
 
 #graphql
 gql-init:

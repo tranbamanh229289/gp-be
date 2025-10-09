@@ -1,0 +1,117 @@
+version: "3.9"
+
+x-app-base: &x-base
+    env_file:
+        - .env.dev
+    restart: unless-
+
+services:
+    postgres:
+        <<: *x-base
+        image: postgres:16
+        container_name: postgres-container
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_DB}
+        ports:
+            - "${POSTGRES_PORT}:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+
+    mongodb:
+        <<: *x-base
+        image: mongo:6.0
+        container_name: mongodb-container
+        environment:
+            - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_PASSWORD}
+        ports:
+            - "${MONGO_PORT}:27017"
+        volumes:
+            - mongodb_data:/data/db
+        restart: unless-stopped
+
+    redis:
+        <<: *x-base
+        image: redis:alpine
+        container_name: redis-container
+        ports:
+            - "${REDIS_PORT}:6379"
+        volumes:
+            - redis_data:/data
+        restart: unless-stopped
+
+    rabbitmq:
+        <<: *x-base
+        image: rabbitmq:3.12-management
+        environment:
+            - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+            - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+        ports:
+            - "${RABBITMQ_PORT}:5672"
+            - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+        volumes:
+            - rabbitmq_data:/var/lib/rabbitmq
+        restart: unless-stopped
+
+    elasticsearch:
+        <<: *x-base
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.10.4
+        container_name: elastic-container
+        environment:
+            - discovery.type=single-node
+            - xpack.security.enabled=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+        volumes:
+            - elastic_data:/usr/share/elasticsearch/data
+        ports:
+            - "${ELASTIC_PORT}:9200"
+        networks:
+            - efk-net
+    fluentd:
+        <<: *x-base
+        build: ./fluentd
+        container_name: fluentd-container
+        ports:
+            - "${FLUENTD_PORT}:24224"
+            - "${FLUENTD_PORT}:24224/udp"
+        volumes:
+            - ./fluentd/conf:/fluentd/etc
+        depends_on:
+            - elasticsearch
+        links:
+            - elasticsearch
+        networks:
+            - efk-net
+    kibana:
+        <<: *x-base
+        image: docker.elastic.co/kibana/kibana:8.10.4
+        container_name: kibana-container
+        environment:
+            - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+            - ELASTICSEARCH_USERNAME=elastic
+            - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+        ports:
+            - "${KIBANA_PORT}:5601"
+        depends_on:
+            - elasticsearch
+        networks:
+            - efk-net
+
+volumes:
+    postgres_data:
+        driver: local
+    mongodb_data:
+        driver: local
+    redis_data:
+        driver: local
+    rabbitmq_data:
+        driver: local
+    elastic_data:
+        driver: local
+networks:
+    efk-net:
+        driver: bridge
