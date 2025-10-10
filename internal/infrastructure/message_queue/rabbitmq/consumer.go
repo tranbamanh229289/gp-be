@@ -9,21 +9,21 @@ import (
 )
 
 type Consumer struct {
-	client *RabbitMQClient
+	queue *RabbitQueue
 }
 
-func NewConsumer(client *RabbitMQClient) *Consumer{
-	return &Consumer{client: client}
+func NewConsumer(queue *RabbitQueue) *Consumer{
+	return &Consumer{queue: queue}
 }
 
 func (c *Consumer) Consume(ctx context.Context, queue, tag string) error {
-	msgs, err := c.client.Channel.Consume(queue, tag, false, false, false, false, nil)
+	msgs, err := c.queue.Channel.Consume(queue, tag, false, false, false, false, nil)
 	if err != nil {
 		return fmt.Errorf("failed to register consume: %v", err)
 	}
 
 	channelClosed := make(chan *amqp091.Error, 1)
-	c.client.Channel.NotifyClose(channelClosed)
+	c.queue.Channel.NotifyClose(channelClosed)
 
 	go func(){
 		defer log.Printf("Consumer goroutine exited")
@@ -77,5 +77,5 @@ func HandleMessage(ctx context.Context, msg amqp091.Delivery) error {
 }
 
 func (c *Consumer)Cancel(tag string) error {
-	return c.client.Channel.Cancel(tag, false)
+	return c.queue.Channel.Cancel(tag, false)
 }

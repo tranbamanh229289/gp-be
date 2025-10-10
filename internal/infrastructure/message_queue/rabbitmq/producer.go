@@ -10,11 +10,11 @@ import (
 )
 
 type Producer struct {
-	client *RabbitMQClient
+	queue *RabbitQueue
 }
 
-func NewProducer(client *RabbitMQClient)(*Producer, error) {
-	return &Producer{client: client}, nil
+func NewProducer(queue *RabbitQueue)(*Producer, error) {
+	return &Producer{queue: queue}, nil
 }
 
 func(p *Producer) Publish(ctx context.Context, exchange string, message Message) error {
@@ -23,7 +23,7 @@ func(p *Producer) Publish(ctx context.Context, exchange string, message Message)
 		log.Fatal("Failed to marshal message: %w", err)
 	}
 	
-	err = p.client.Channel.Publish(exchange, message.RoutingKey, false, false, amqp091.Publishing{
+	err = p.queue.Channel.Publish(exchange, message.RoutingKey, false, false, amqp091.Publishing{
 		ContentType: "application/json",
 		Body: body,
 		DeliveryMode: amqp091.Persistent,
@@ -40,18 +40,18 @@ func(p *Producer) Publish(ctx context.Context, exchange string, message Message)
 }
 
 func (p *Producer) PublishWithAck(ctx context.Context, exchange, routingKey string, message Message) error {
-	if err := p.client.Channel.Confirm(false); err != nil {
+	if err := p.queue.Channel.Confirm(false); err != nil {
 		log.Fatal("Failed to put channel in confirm mode: %w", err)
 	}
 
-	confirms := p.client.Channel.NotifyPublish(make(chan amqp091.Confirmation, 1))
+	confirms := p.queue.Channel.NotifyPublish(make(chan amqp091.Confirmation, 1))
 
 	body, err := json.Marshal(message)
 	if err != nil {
 		log.Fatal("Failed to marshal message: %w", err)
 	}
 	
-		err = p.client.Channel.Publish(exchange, message.RoutingKey, false, false, amqp091.Publishing{
+		err = p.queue.Channel.Publish(exchange, message.RoutingKey, false, false, amqp091.Publishing{
 		ContentType: "application/json",
 		Body: body,
 		DeliveryMode: amqp091.Persistent,

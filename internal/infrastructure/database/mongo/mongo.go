@@ -10,12 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MongoClient struct {
+type MongoDB struct {
 	Client *mongo.Client
 	DB *mongo.Database
 }
 
-func NewMongoClient(cfg *config.Config) (*MongoClient, error){
+func NewDB(cfg *config.Config) (*MongoDB, error){
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Mongo.Timeout * time.Second)
 	defer cancel()
 
@@ -34,12 +34,12 @@ func NewMongoClient(cfg *config.Config) (*MongoClient, error){
 		log.Fatal("Failed to ping mongo:", err)
 	}
 
-	return &MongoClient{
+	return &MongoDB{
 		Client: client,
 		DB: client.Database(cfg.Mongo.Database),
 	}, nil
 }
 
-func (mc *MongoClient) Disconnect(ctx context.Context) error {
-	return mc.Client.Disconnect(ctx)
+func (m *MongoDB) Disconnect(ctx context.Context) error {
+	return m.Client.Disconnect(ctx)
 }

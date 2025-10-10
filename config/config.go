@@ -83,7 +83,7 @@ type Config struct {
 }
 
 
-func LoadConfig()(*Config, error) {
+func NewConfig()(*Config, error) {
 	// read .env file
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Error loading .env file", err)

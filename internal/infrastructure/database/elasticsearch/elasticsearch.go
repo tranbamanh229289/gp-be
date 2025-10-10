@@ -7,11 +7,11 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 )
 
-type ElasticsearchClient struct {
+type ElasticsearchDB struct {
 	Client *elasticsearch.Client
 }
 
-func NewElasticsearchClient(cfg *config.Config)(*ElasticsearchClient, error){
+func NewDB(cfg *config.Config)(*ElasticsearchDB, error){
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: config.GetElasticsearchAddress(cfg),
 		Username: cfg.Elasticsearch.Username,
@@ -30,9 +30,9 @@ func NewElasticsearchClient(cfg *config.Config)(*ElasticsearchClient, error){
 	defer res.Body.Close()
 	log.Println("Elasticsearch info:", res)
 	
-	return &ElasticsearchClient{Client: client}, nil
+	return &ElasticsearchDB{Client: client}, nil
 }
 
-func (ec *ElasticsearchClient) Close() error {
+func (es *ElasticsearchDB) Close() error {
 	return nil;
 }

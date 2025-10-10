@@ -1,7 +1,6 @@
-package main
+package graph
 
 import (
-	"be/internal/transport/graph"
 	"context"
 	"log"
 	"net/http"
@@ -45,7 +44,7 @@ func gql() {
 	}
 
 	// create graphql server
-	srv := handler.New(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{}}))
+	srv := handler.New(NewExecutableSchema(Config{Resolvers: &Resolver{}}))
 
 	// add transport http
 	srv.AddTransport(transport.Options{})

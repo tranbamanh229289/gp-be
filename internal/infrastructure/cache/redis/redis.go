@@ -1,4 +1,4 @@
-package cache
+package redis
 
 import (
 	"be/config"
@@ -18,11 +18,11 @@ type RedisCommand interface {
 	Publish(key string, message any) error
 }
 
-type RedisClient struct {
+type RedisCache struct {
 	Client *redis.Client
 }
 
-func NewRedisClient(config *config.Config) (*RedisClient, error) {
+func NewCache(config *config.Config) (*RedisCache, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), config.Redis.Timeout * time.Second)
 	defer cancel()
 
@@ -40,29 +40,29 @@ func NewRedisClient(config *config.Config) (*RedisClient, error) {
 		log.Fatal("Failed to connect to redis:", err)
 	}
 
-	return &RedisClient{Client: client}, nil;
+	return &RedisCache{Client: client}, nil;
 }
 
-func (r *RedisClient) Get(key string) (any, error) {
+func (r *RedisCache) Get(key string) (any, error) {
 	return r.Client.Get(context.Background(), key).Result()
 }
 
-func (r *RedisClient) Set(key string, value any, expiration time.Duration) error{
+func (r *RedisCache) Set(key string, value any, expiration time.Duration) error{
 	return r.Client.Set(context.Background(), key, value, expiration).Err()
 }
 
-func (r *RedisClient) Delete(key string) error {
+func (r *RedisCache) Delete(key string) error {
 	return r.Client.Del(context.Background(), key).Err()
 }
 
-func (r *RedisClient) Subscribe(channel string) (*redis.PubSub, error) {
+func (r *RedisCache) Subscribe(channel string) (*redis.PubSub, error) {
 	return r.Client.Subscribe(context.Background(), channel), nil
 }
 
-func (r *RedisClient) Publish(channel string, message any) error {
+func (r *RedisCache) Publish(channel string, message any) error {
 	return r.Client.Publish(context.Background(),  channel, message).Err()
 }
 
-func (rc *RedisClient) Close() error {
-	return rc.Client.Close()
+func (r *RedisCache) Close() error {
+	return r.Client.Close()
 }

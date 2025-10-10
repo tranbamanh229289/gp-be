@@ -7,13 +7,13 @@ import (
 	"github.com/rabbitmq/amqp091-go"
 )
 
-type RabbitMQClient struct{
+type RabbitQueue struct{
 	Connection *amqp091.Connection
 	Channel *amqp091.Channel
 }
 
 
-func NewClient(cfg *config.Config) (*RabbitMQClient, error){
+func NewQueue(cfg *config.Config) (*RabbitQueue, error){
 	// connect
 	dsn := config.GetRabbitMQDSN(cfg)
 	conn, err := amqp091.Dial(dsn)
@@ -35,12 +35,12 @@ func NewClient(cfg *config.Config) (*RabbitMQClient, error){
 		log.Fatal("Failed to set qos %w", err)
 	}
 
-	return &RabbitMQClient{Connection: conn, Channel: ch}, nil 
+	return &RabbitQueue{Connection: conn, Channel: ch}, nil 
 
 }
 
-func (rc *RabbitMQClient) DeclareExchange(name, kind string, durable, autoDelete bool) error {
-	err := rc.Channel.ExchangeDeclare(name, kind, durable, autoDelete, false, false, nil)
+func (rq *RabbitQueue) DeclareExchange(name, kind string, durable, autoDelete bool) error {
+	err := rq.Channel.ExchangeDeclare(name, kind, durable, autoDelete, false, false, nil)
 	if err != nil {
 		log.Fatal("Failed to declare exchange: %w", err)
 	}
@@ -48,38 +48,38 @@ func (rc *RabbitMQClient) DeclareExchange(name, kind string, durable, autoDelete
 }	
 
 
-func (rc *RabbitMQClient) DeclareQueue(name string, durable, autoDelete, exclusive bool) (*amqp091.Queue, error) {
-	queue, err := rc.Channel.QueueDeclare(name, durable, autoDelete, exclusive, false, nil)
+func (rq *RabbitQueue) DeclareQueue(name string, durable, autoDelete, exclusive bool) (*amqp091.Queue, error) {
+	queue, err := rq.Channel.QueueDeclare(name, durable, autoDelete, exclusive, false, nil)
 	if err != nil {
 		log.Fatal("Failed to declare queue: %w", err)
 	}
 	return &queue, nil 
 }
 
-func (rc *RabbitMQClient) BindQueue(queue, routingKey, exchange string) error {
-	err := rc.Channel.QueueBind(queue, routingKey, exchange, false, nil)
+func (rq *RabbitQueue) BindQueue(queue, routingKey, exchange string) error {
+	err := rq.Channel.QueueBind(queue, routingKey, exchange, false, nil)
 	if err != nil {
 		log.Fatal("Failed to bind queue: %w", err)
 	}
 	return nil
 }
 
-func (rc *RabbitMQClient) UnbindQueue(queue, routingKey, exchange string) error {
-	err := rc.Channel.QueueUnbind(queue, routingKey, exchange, nil)
+func (rq *RabbitQueue) UnbindQueue(queue, routingKey, exchange string) error {
+	err := rq.Channel.QueueUnbind(queue, routingKey, exchange, nil)
 	if err != nil {
 		log.Fatal("Failed to unbind queue: %w", err)
 	}
 	return nil
 }
 
-func (rc *RabbitMQClient) Close()error {
-	if rc.Channel != nil {
-		if err := rc.Channel.Close(); err != nil {
+func (rq *RabbitQueue) Close()error {
+	if rq.Channel != nil {
+		if err := rq.Channel.Close(); err != nil {
 			log.Fatal("Failed to close channel :%w", err)
 		}
 	}
-	if rc.Connection != nil {
-		if err := rc.Connection.Close(); err != nil {
+	if rq.Connection != nil {
+		if err := rq.Connection.Close(); err != nil {
 			log.Fatal("Failed to close connection : %w", err)
 		}
 	}
