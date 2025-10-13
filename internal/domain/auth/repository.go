@@ -1,9 +1,10 @@
 package auth
 
+import "context"
+
 type UserRepository interface {
-	FindById(id int64) (*User, error)
-	FindByEmail(email string) (*User, error)
-	FindAll()([]*User, error)
-	Create(user *User) error
-	Update(user *User) error
+	FindById(ctx context.Context, id string) (User, error)
+	FindByEmail(ctx context.Context, email string) (User, error)
+	FindAll(ctx context.Context)([]User, error)
+	Save(ctx context.Context, user User) error
 }

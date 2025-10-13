@@ -1,13 +1,17 @@
 server:
     host: "localhost"
     port: 8080
-    env: "development"
+    timeout: 15s
     graphql:
         host: "localhost"
         port: 8081
     websocket:
         host: "localhost"
         port: 8082
+tls:
+    enabled: true
+    cert_file: "cert.pem"
+    key_file: "key.pem"
 
 postgres:
     host: "localhost"

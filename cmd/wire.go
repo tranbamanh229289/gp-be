@@ -14,19 +14,20 @@ import (
 	"github.com/google/wire"
 )
 
-var configSet = wire.NewSet(config.NewConfig)
-
+// Infra Set
 var dbSet = wire.NewSet(postgres.NewDB, mongo.NewDB, elasticsearch.NewDB)
 var cacheSet = wire.NewSet(redis.NewCache)
 var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.NewProducer)
 
+// Domain Set
 var domainSet = wire.NewSet()
 
+// Service Set
 var serviceSet = wire.NewSet()
 
-var pkgSet = wire.NewSet()
+// Handler Set
 
-func InitializeDependency() error {
-	wire.Build(configSet, dbSet, queueSet, domainSet, serviceSet, pkgSet)
+func InitializeDependency(config *config.Config) error {
+	wire.Build(dbSet, queueSet, domainSet, serviceSet)
 	return nil
 }

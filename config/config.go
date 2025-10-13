@@ -13,7 +13,13 @@ import (
 type ServerConfig struct {
 	Host string
 	Port int
-	Env string
+	Timeout time.Duration
+}
+
+type TLSConfig struct {
+	Enabled bool
+	CertFile string
+	KeyFile string
 }
 
 type PostgresConfig struct {
@@ -74,6 +80,7 @@ type JwtConfig struct {
 
 type Config struct {
 	Server ServerConfig
+	TLS TLSConfig
 	Postgres PostgresConfig
 	Mongo MongoConfig
 	Elasticsearch ElasticsearchConfig
@@ -83,7 +90,7 @@ type Config struct {
 }
 
 
-func NewConfig()(*Config, error) {
+func LoadConfig()(*Config, error) {
 	// read .env file
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Error loading .env file", err)
@@ -107,7 +114,12 @@ func NewConfig()(*Config, error) {
 		Server: ServerConfig{
 			Host: viper.GetString("server.host"),
 			Port: viper.GetInt("server.port"),
-			Env: viper.GetString("server.env"),
+			Timeout: viper.GetDuration("server.timeout"),
+		},
+		TLS: TLSConfig{
+			Enabled: viper.GetBool("tls.enabled"),
+			CertFile: viper.GetString("tls.cert_file"),
+			KeyFile: viper.GetString("tls.key_file"),
 		},
 		Postgres: PostgresConfig{
 			Host: viper.GetString("postgres.host"),
