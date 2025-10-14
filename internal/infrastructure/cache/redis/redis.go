@@ -2,12 +2,13 @@ package redis
 
 import (
 	"be/config"
+	"be/pkg/logger"
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/redis/go-redis/v9"
+	"go.uber.org/zap"
 )
 
 type RedisCommand interface {
@@ -19,10 +20,11 @@ type RedisCommand interface {
 }
 
 type RedisCache struct {
-	Client *redis.Client
+	client *redis.Client
+	logger *logger.ZapLogger
 }
 
-func NewCache(config *config.Config) (*RedisCache, error) {
+func NewCache(config *config.Config, logger *logger.ZapLogger) (*RedisCache, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), config.Redis.Timeout * time.Second)
 	defer cancel()
 
@@ -37,32 +39,37 @@ func NewCache(config *config.Config) (*RedisCache, error) {
 	})
 	
 	if err := client.Ping(ctx).Err(); err != nil {
-		log.Fatal("Failed to connect to redis:", err)
-	}
+		logger.Error("Failed to connect to redis: ", 
+			zap.Error(err), 
+			zap.String("addresses", fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)))
+		return nil, err
+	} 
+	logger.Info("Successfully connected to Redis", 
+		zap.String("addresses", fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)))
 
-	return &RedisCache{Client: client}, nil;
+	return &RedisCache{client: client, logger: logger}, nil;
 }
 
 func (r *RedisCache) Get(key string) (any, error) {
-	return r.Client.Get(context.Background(), key).Result()
+	return r.client.Get(context.Background(), key).Result()
 }
 
 func (r *RedisCache) Set(key string, value any, expiration time.Duration) error{
-	return r.Client.Set(context.Background(), key, value, expiration).Err()
+	return r.client.Set(context.Background(), key, value, expiration).Err()
 }
 
 func (r *RedisCache) Delete(key string) error {
-	return r.Client.Del(context.Background(), key).Err()
+	return r.client.Del(context.Background(), key).Err()
 }
 
 func (r *RedisCache) Subscribe(channel string) (*redis.PubSub, error) {
-	return r.Client.Subscribe(context.Background(), channel), nil
+	return r.client.Subscribe(context.Background(), channel), nil
 }
 
 func (r *RedisCache) Publish(channel string, message any) error {
-	return r.Client.Publish(context.Background(),  channel, message).Err()
+	return r.client.Publish(context.Background(),  channel, message).Err()
 }
 
 func (r *RedisCache) Close() error {
-	return r.Client.Close()
+	return r.client.Close()
 }

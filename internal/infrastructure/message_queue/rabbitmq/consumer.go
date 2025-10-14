@@ -1,32 +1,34 @@
 package rabbitmq
 
 import (
+	"be/pkg/logger"
 	"context"
-	"fmt"
-	"log"
 
 	"github.com/rabbitmq/amqp091-go"
+	"go.uber.org/zap"
 )
 
 type Consumer struct {
 	queue *RabbitQueue
+	logger *logger.ZapLogger
 }
 
-func NewConsumer(queue *RabbitQueue) *Consumer{
-	return &Consumer{queue: queue}
+func NewConsumer(queue *RabbitQueue, logger *logger.ZapLogger) *Consumer{
+	return &Consumer{queue: queue, logger: logger}
 }
 
 func (c *Consumer) Consume(ctx context.Context, queue, tag string) error {
-	msgs, err := c.queue.Channel.Consume(queue, tag, false, false, false, false, nil)
+	msgs, err := c.queue.channel.Consume(queue, tag, false, false, false, false, nil)
 	if err != nil {
-		return fmt.Errorf("failed to register consume: %v", err)
+		c.logger.Error("Failed to register consume: ", zap.Error(err))
+		return err
 	}
 
 	channelClosed := make(chan *amqp091.Error, 1)
-	c.queue.Channel.NotifyClose(channelClosed)
+	c.queue.channel.NotifyClose(channelClosed)
 
 	go func(){
-		defer log.Printf("Consumer goroutine exited")
+		defer c.logger.Info("Consumer goroutine exited")
 		for {
 			select {
 				case msg, ok :=<-msgs: 
@@ -35,25 +37,25 @@ func (c *Consumer) Consume(ctx context.Context, queue, tag string) error {
 					}
 					err := HandleMessage(ctx, msg)
 					if err != nil {
-						log.Printf("Failed to handle message: %v", err)
+						c.logger.Info("Failed to handle message:", zap.Error(err))
 						if err := msg.Nack(false, true); err != nil {
-							log.Printf("Failed to nack message: %v", err)
+							c.logger.Info("Failed to nack message:", zap.Error(err))
 						}
 						continue
 					}
 					
 					if err := msg.Ack(false); err != nil {
-						log.Printf("Failed to ack message: %v", err)
+						c.logger.Info("Failed to ack message:", zap.Error(err))
 					} else {
-						log.Printf("Message processed and acked: %s", msg.Body)
+						c.logger.Info("Message processed and acked: ", zap.String("body", string(msg.Body)))
 					}
 				case <-ctx.Done():
-					log.Println(" Context cancelled in goroutine !")
+					c.logger.Info(" Context cancelled in goroutine !")
 					c.Cancel(tag)
 					return
 				case err := <- channelClosed: 
-					log.Printf("Channel closed: %v", err)
-					return 
+					c.logger.Error("Channel closed:", zap.Error(err))
+					return
 			}
 		}
 
@@ -61,10 +63,10 @@ func (c *Consumer) Consume(ctx context.Context, queue, tag string) error {
 
 	select {
 		case <- ctx.Done(): 
-			log.Println("Consumer stopped by context")
+			c.logger.Info("Consumer stopped by context")
 			return ctx.Err()
 		case err := <- channelClosed: 
-			log.Printf("Channel closed: %w", err)
+			c.logger.Error("Channel closed:", zap.Error(err))
 			return err
 
 	}
@@ -72,10 +74,9 @@ func (c *Consumer) Consume(ctx context.Context, queue, tag string) error {
 }
 
 func HandleMessage(ctx context.Context, msg amqp091.Delivery) error {
-	log.Printf("Processing message %s", msg.Body)
 	return nil
 }
 
 func (c *Consumer)Cancel(tag string) error {
-	return c.queue.Channel.Cancel(tag, false)
+	return c.queue.channel.Cancel(tag, false)
 }

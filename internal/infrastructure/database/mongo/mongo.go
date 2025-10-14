@@ -2,20 +2,22 @@ package mongo
 
 import (
 	"be/config"
+	"be/pkg/logger"
 	"context"
-	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.uber.org/zap"
 )
 
 type MongoDB struct {
-	Client *mongo.Client
-	DB *mongo.Database
+	client *mongo.Client
+	db *mongo.Database
+	logger *logger.ZapLogger
 }
 
-func NewDB(cfg *config.Config) (*MongoDB, error){
+func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*MongoDB, error){
 	ctx, cancel := context.WithTimeout(context.Background(), cfg.Mongo.Timeout * time.Second)
 	defer cancel()
 
@@ -27,19 +29,29 @@ func NewDB(cfg *config.Config) (*MongoDB, error){
 		SetMinPoolSize(cfg.Mongo.MinPoolSize))
 
 	if err != nil {
-		log.Fatal("Failed to connect to mongo:", err)
+		logger.Error("Failed to connect to mongo:", 
+			zap.Error(err),
+			zap.String("addresses", cfg.Mongo.URI))
+			return nil, err
 	}
 
 	if err := client.Ping(ctx, nil); err != nil {
-		log.Fatal("Failed to ping mongo:", err)
+		logger.Error("Failed to ping mongo:", 
+		zap.Error(err),
+		zap.String("addresses", cfg.Mongo.URI))
+		return nil, err
 	}
 
+	logger.Info("Successfully connected to Mongo", 
+		zap.String("addresses", cfg.Mongo.URI))
+
 	return &MongoDB{
-		Client: client,
-		DB: client.Database(cfg.Mongo.Database),
+		client: client,
+		db: client.Database(cfg.Mongo.Database),
+		logger: logger,
 	}, nil
 }
 
 func (m *MongoDB) Disconnect(ctx context.Context) error {
-	return m.Client.Disconnect(ctx)
+	return m.client.Disconnect(ctx)
 }

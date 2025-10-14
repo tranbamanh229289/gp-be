@@ -2,16 +2,19 @@ package elasticsearch
 
 import (
 	"be/config"
-	"log"
+	"be/pkg/logger"
+	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v8"
+	"go.uber.org/zap"
 )
 
 type ElasticsearchDB struct {
-	Client *elasticsearch.Client
+	client *elasticsearch.Client
+	logger *logger.ZapLogger
 }
 
-func NewDB(cfg *config.Config)(*ElasticsearchDB, error){
+func NewDB(cfg *config.Config, logger *logger.ZapLogger)(*ElasticsearchDB, error){
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
 		Addresses: config.GetElasticsearchAddress(cfg),
 		Username: cfg.Elasticsearch.Username,
@@ -19,18 +22,27 @@ func NewDB(cfg *config.Config)(*ElasticsearchDB, error){
 	})
 
 	if err != nil {
-		log.Fatal("Failed to create elasticsearch client:", err)
+		logger.Error("Failed to create elasticsearch client:", 
+			zap.Error(err), 
+			zap.Strings("addresses", 
+			config.GetElasticsearchAddress(cfg)))
+		return nil, err
 	}
 
 	res, err := client.Info();
 
-	if  err != nil {
-		log.Fatal("Failed to get elasticsearch info:", err)
+	if  err != nil || res.StatusCode != http.StatusOK {
+		logger.Error("Failed to get elasticsearch info:", 
+			zap.Error(err), 
+			zap.Strings("addresses", config.GetElasticsearchAddress(cfg)))
+		return nil, err
 	}
+
 	defer res.Body.Close()
-	log.Println("Elasticsearch info:", res)
+	logger.Info("Successfully connected to Elasticsearch", 
+		zap.Strings("addresses", config.GetElasticsearchAddress(cfg)))
 	
-	return &ElasticsearchDB{Client: client}, nil
+	return &ElasticsearchDB{client: client, logger: logger}, nil
 }
 
 func (es *ElasticsearchDB) Close() error {

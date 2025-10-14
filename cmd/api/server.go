@@ -2,18 +2,19 @@ package api
 
 import (
 	"be/config"
+	"be/pkg/logger"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net/http"
 )
 
 type Server struct {
 	httpServer *http.Server
+	logger *logger.ZapLogger
 }
 
-func NewServer(cfg *config.Config, handler http.Handler) *Server{
+func NewServer(cfg *config.Config, logger *logger.ZapLogger, handler http.Handler) *Server{
 	httpServer := &http.Server{
 		Addr: fmt.Sprintf("%s:%d", cfg.Server.Host,cfg.Server.Port),
 		Handler: handler,
@@ -27,19 +28,22 @@ func NewServer(cfg *config.Config, handler http.Handler) *Server{
 			MinVersion: tls.VersionTLS13,
 		}
 	}
-	return &Server{httpServer: httpServer}
+	return &Server{httpServer: httpServer, logger: logger}
 }
 
 func(server *Server) Run(cfg *config.Config) error {
-	log.Printf("Starting server on %s", server.httpServer.Addr)
     if server.httpServer.TLSConfig != nil {
-        log.Println("TLS enabled")
+        server.logger.Info("TLS enabled")
         return server.httpServer.ListenAndServeTLS(cfg.TLS.CertFile, cfg.TLS.KeyFile)
     }
-    log.Println("TLS disabled")
+    server.logger.Info("TLS disabled")
     return server.httpServer.ListenAndServe()
 }
 
 func (server *Server) Shutdown(ctx context.Context) error {
 	return server.httpServer.Shutdown(ctx)
+}
+
+func (server *Server) GetHttpServer() *http.Server{
+	return server.httpServer
 }

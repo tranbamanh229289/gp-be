@@ -1,6 +1,6 @@
 package product
 
-type ProductRepository interface {
+type IProductRepository interface {
 	FindAll()([]*Product, error)
 	FindById(id int64) (*Product, error)
 	Create(product *Product) error
@@ -8,7 +8,7 @@ type ProductRepository interface {
 	Delete(id int64) error	
 }
 
-type CategoryRepository interface {
+type ICategoryRepository interface {
 	FindAll()([]*Category, error)
 	FindById(id int64)(*Category, error)
 	Create(category *Category) error

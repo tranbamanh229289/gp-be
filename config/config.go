@@ -10,6 +10,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+type AppConfig struct {
+	Name string
+	Version string
+	Environment string
+}
 type ServerConfig struct {
 	Host string
 	Port int
@@ -20,6 +25,16 @@ type TLSConfig struct {
 	Enabled bool
 	CertFile string
 	KeyFile string
+}
+
+type JwtConfig struct {
+	Secret string
+	AccessTokenTTL time.Duration
+	RefreshTokenTTL time.Duration
+}
+type ZapConfig struct {
+	Level string
+	Encoding string
 }
 
 type PostgresConfig struct {
@@ -60,25 +75,26 @@ type RedisConfig struct {
 }
 
 type RabbitMQConfig struct {
-		Host string
-		Port int
-		UserName string
-		Password string
-		VHost string
-		PrefetchCount int
-		ConnectionTimeout int
-		HeartBeat int
-		ReconnectDelay int
-
+	Host string
+	Port int
+	UserName string
+	Password string
+	VHost string
+	PrefetchCount int
+	ConnectionTimeout int
+	HeartBeat int
+	ReconnectDelay int
 }
 
-type JwtConfig struct {
-	Secret string
-	AccessTokenTTL time.Duration
-	RefreshTokenTTL time.Duration
+type FluentConfig struct {
+	Host string
+	Port int
+	Protocol string // tcp, udp
+	Timeout time.Duration
 }
 
 type Config struct {
+	App AppConfig
 	Server ServerConfig
 	TLS TLSConfig
 	Postgres PostgresConfig
@@ -86,11 +102,13 @@ type Config struct {
 	Elasticsearch ElasticsearchConfig
 	Redis RedisConfig
 	RabbitMQ RabbitMQConfig
-	JwtConfig JwtConfig
+	JWT JwtConfig
+	Zap ZapConfig
+	Fluent FluentConfig
 }
 
 
-func LoadConfig()(*Config, error) {
+func NewConfig()(*Config, error) {
 	// read .env file
 	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("Error loading .env file", err)
@@ -111,6 +129,11 @@ func LoadConfig()(*Config, error) {
 	}
 	
 	config := &Config{
+		App: AppConfig{
+			Name: viper.GetString("app.name"),
+			Version: viper.GetString("app.version"),
+			Environment: viper.GetString("app.environment"),
+		},
 		Server: ServerConfig{
 			Host: viper.GetString("server.host"),
 			Port: viper.GetInt("server.port"),
@@ -164,12 +187,21 @@ func LoadConfig()(*Config, error) {
 			HeartBeat: viper.GetInt("rabbitmq.heartbeat"),
 			ReconnectDelay: viper.GetInt("rabbitmq.reconnect_delay"),
 		},
-		JwtConfig: JwtConfig{
+		JWT: JwtConfig{
 			Secret: viper.GetString("jwt.secret"),
 			AccessTokenTTL: viper.GetDuration("jwt.access_token_ttl"),
 			RefreshTokenTTL: viper.GetDuration("jwt.refresh_token_ttl"),
 		},
-		
+		Zap: ZapConfig{
+			Level: viper.GetString("zap.level"),
+			Encoding: viper.GetString("zap.encoding"),
+		},
+		Fluent: FluentConfig{
+			Host: viper.GetString("fluent.host"),
+			Port: viper.GetInt("fluent.port"),
+			Protocol: viper.GetString("fluent.protocol"),
+			Timeout: viper.GetDuration("fluent.timeout"),
+		},
 	}
 	return config, nil
 }

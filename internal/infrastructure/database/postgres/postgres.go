@@ -2,48 +2,65 @@ package postgres
 
 import (
 	"be/config"
+	"be/pkg/logger"
 	"database/sql"
-	"log"
 
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 type PostgresDB struct {
-	SQLDB *sql.DB
-	GormDB *gorm.DB
+	sqlDB *sql.DB
+	gormDB *gorm.DB
+	logger *logger.ZapLogger
 }
 
-func NewDB(cfg *config.Config) (*PostgresDB, error) {
-	// native sql
+func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*PostgresDB, error) {
+	// native sql	
 	dsn := config.GetPostgresDSN(cfg)
 
 	sqlDB, err := sql.Open(cfg.Postgres.Driver, dsn)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err	)
+		logger.Error("Failed to connect to database:", 
+			zap.Error(err), 
+			zap.String("addresses", dsn))
+		return nil, err
 	}
 
 	sqlDB.SetMaxOpenConns(cfg.Postgres.MaxConnections)
 
 	pingErr := sqlDB.Ping()
 	if pingErr != nil {
-		log.Fatal("Failed to ping database:", pingErr)
+		logger.Error("Failed to ping to database:", 
+			zap.Error(pingErr), 
+			zap.String("addresses", dsn))
+		return nil, err
 	}
 
 	// gorm
 	gormDB, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: sqlDB,
 	}), &gorm.Config{})
+
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err	)
+		logger.Error("Failed to connect to database:", 
+			zap.Error(err), 
+			zap.String("addresses", dsn))
+		return nil, err
 	}
+
+	logger.Info("Successfully to connect to database:",  
+			zap.String("addresses", dsn))
 	
-	return &PostgresDB{SQLDB: sqlDB, GormDB: gormDB}, nil
+	return &PostgresDB{sqlDB: sqlDB, gormDB: gormDB, logger: logger}, nil
 }
 
 func (p *PostgresDB) Close() error {
-	if err := p.SQLDB.Close(); err != nil {
-		log.Fatal("Failed to close db")
+	if err := p.sqlDB.Close(); err != nil {
+		p.logger.Error("Failed to close to database:", 
+			zap.Error(err),)
+		return err
 	}
 	return nil
 }

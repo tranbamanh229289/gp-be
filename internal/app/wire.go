@@ -1,0 +1,51 @@
+package app
+
+import (
+	"be/config"
+	"be/internal/infrastructure/cache/redis"
+	"be/internal/infrastructure/database/elasticsearch"
+	"be/internal/infrastructure/database/mongo"
+	"be/internal/infrastructure/database/postgres"
+	"be/internal/infrastructure/database/repository"
+	"be/internal/infrastructure/message_queue/rabbitmq"
+	"be/internal/service"
+	"be/internal/transport/http/handler"
+	"be/pkg/fluent"
+	"be/pkg/logger"
+
+	"github.com/google/wire"
+)
+
+// Log Set
+var logSet = wire.NewSet(fluent.NewFluent, logger.NewLogger)
+
+// Config Set
+var configSet = wire.NewSet(config.NewConfig)
+
+// Infra Set
+var dbSet = wire.NewSet(postgres.NewDB, mongo.NewDB, elasticsearch.NewDB)
+var cacheSet = wire.NewSet(redis.NewCache)
+var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.NewProducer)
+
+// Handler Set
+var handlerSet = wire.NewSet(handler.NewAuthHandler)
+
+// Service Set
+var serviceSet = wire.NewSet(service.NewAuthService)
+
+// Repository Set
+var repositorySet = wire.NewSet(repository.NewUserRepository)
+
+func InitializeApplication() (App, error) {
+    panic(wire.Build(
+        configSet,
+        logSet,
+        dbSet,
+        cacheSet,
+        queueSet,
+        handlerSet,
+        serviceSet,
+        repositorySet,
+        wire.Struct(new(App), "*"),
+    ))
+}

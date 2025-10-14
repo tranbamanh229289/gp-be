@@ -3,9 +3,11 @@ version: "3.9"
 x-app-base: &x-base
     env_file:
         - .env.dev
-    restart: unless-
+    restart: unless-stopped
 
 services:
+    app:
+
     postgres:
         <<: *x-base
         image: postgres:16
@@ -73,13 +75,14 @@ services:
             - efk-net
     fluentd:
         <<: *x-base
-        build: ./fluentd
+        image: fluent/fluentd:v1.16-1
         container_name: fluentd-container
         ports:
             - "${FLUENTD_PORT}:24224"
             - "${FLUENTD_PORT}:24224/udp"
         volumes:
-            - ./fluentd/conf:/fluentd/etc
+            - ./pkg/fluent/fluent.conf:/fluentd/etc/fluent.conf
+            - ./pkg/fluent/logs:/fluentd/log
         depends_on:
             - elasticsearch
         links:

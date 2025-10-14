@@ -2,7 +2,9 @@ package api
 
 import (
 	"be/config"
+	"be/internal/app"
 	"be/internal/transport/http/middleware"
+	"be/pkg/logger"
 	"context"
 	"log"
 	"net/http"
@@ -14,44 +16,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-func SetupGlobalMiddlewares(engine *gin.Engine) {
-	engine.Use(middleware.RecoveryMiddleware())
-	engine.Use(middleware.CORSMiddleware())
-	engine.Use(middleware.ErrorHandlingMiddleware())
-}
-
-func SetupRoutes(engine *gin.Engine) {
-	apiGroup := engine.Group("api/v1")
-	{
-		apiGroup.Use()
-	}
-}
-
 func main(){
-	cfg, err := config.LoadConfig()
+	// Initialize app
+	app, err := app.InitializeApplication()
+
 	if err != nil {
-		log.Printf("Failed to load config:%v", err)
+		log.Fatal("Failed to initialize application %v", err)
 	}
+	defer app.Log.Sync()
 
 	engine := gin.New()
 
 	// Setup global middleware
-	SetupGlobalMiddlewares(engine)
+	SetupGlobalMiddlewares(app.Config, app.Log, engine)
 
 	// Setup router
 	SetupRoutes(engine)
 
 	// Create HTTP Server 
-	server := NewServer(cfg, engine)
+	server := NewServer(app.Config, app.Log, engine)
 	
+
 	go func() {
-		err := server.Run(cfg)
+		app.Log.Info("Starting server on: " + server.GetHttpServer().Addr)
+		err := server.Run(app.Config)
 		if err != nil && err != http.ErrServerClosed {
-			log.Println("Server error")
+			app.Log.Info("Server closed!!! ")
 		}
 	}()
-
+	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
@@ -59,4 +52,18 @@ func main(){
 	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer cancel()
 	server.Shutdown(ctx)
+}
+
+func SetupGlobalMiddlewares(cfg *config.Config, logger *logger.ZapLogger, engine *gin.Engine) {
+	engine.Use(middleware.RecoveryMiddleware())
+	engine.Use(middleware.CORSMiddleware())
+	engine.Use(middleware.ErrorHandlingMiddleware())
+	engine.Use(middleware.LogMiddleware(logger))
+}
+
+func SetupRoutes(engine *gin.Engine) {
+	apiGroup := engine.Group("api/v1")
+	{
+		apiGroup.Use()
+	}
 }
