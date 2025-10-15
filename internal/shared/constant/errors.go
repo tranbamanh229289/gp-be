@@ -8,6 +8,10 @@ type Errors struct {
 	HttpStatusCode int
 }
 
+func (e *Errors) Error() string { 
+    return e.Message
+}
+
 var (
 	// Server
 	InternalServer = Errors{
@@ -33,9 +37,24 @@ var (
 		Message: "Forbidden error",
 		HttpStatusCode: http.StatusForbidden,
 	}
+	InvalidAuthHeader = Errors{
+		Code: "INVALID_AUTH_HEADER",
+		Message: "Invalid auth header",
+		HttpStatusCode: http.StatusUnauthorized,
+	}
+	InvalidToken = Errors{
+		Code: "INVALID_TOKEN",
+		Message: "Invalid token",
+		HttpStatusCode: http.StatusUnauthorized,
+	}
 	UserNotFound = Errors{
 		Code: "USER_NOT_FOUND",
 		Message: "User not found error",
-		HttpStatusCode: 404,
+		HttpStatusCode: http.StatusNotFound,
+	}
+	UserExisted = Errors {
+		Code: "USER_EXISTED",
+		Message: "User existed",
+		HttpStatusCode: http.StatusConflict,
 	}
 )

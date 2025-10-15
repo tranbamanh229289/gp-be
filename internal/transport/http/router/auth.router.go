@@ -12,8 +12,8 @@ func SetupUserRouter(apiGroup *gin.RouterGroup, authHandler *handler.AuthHandler
 	{
 		userGroup.Use(middleware.AuthMiddleware())
 		userGroup.GET("/", authHandler.GetAllUser)
-		userGroup.GET("profile", authHandler.GetProfile)
-		userGroup.PUT("profile", authHandler.UpdateProfile)
+		userGroup.GET("profile/:id", authHandler.GetProfile)
+		userGroup.PUT("profile/:id", authHandler.UpdateProfile)
 		userGroup.GET("refresh-token", authHandler.RefreshToken)
 		userGroup.POST("register", authHandler.Register)
 		userGroup.POST("login", authHandler.Login)

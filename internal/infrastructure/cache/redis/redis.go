@@ -54,7 +54,7 @@ func (r *RedisCache) Get(key string) (any, error) {
 	return r.client.Get(context.Background(), key).Result()
 }
 
-func (r *RedisCache) Set(key string, value any, expiration time.Duration) error{
+func (r *RedisCache) Set(key string, value any, expiration time.Duration) error {
 	return r.client.Set(context.Background(), key, value, expiration).Err()
 }
 

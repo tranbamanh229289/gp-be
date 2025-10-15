@@ -1,7 +1,8 @@
-package helper
+package response
 
 import (
 	"be/internal/shared/constant"
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -28,11 +29,14 @@ func RespondSuccess(ctx *gin.Context, data interface{}) {
 	})
 }
 
-func RespondError(ctx *gin.Context, err *constant.Errors) {
-	ctx.JSON(http.StatusOK, &Response{
-		Code: err.Code,
-		Message: err.Message,
-	})
+func RespondError(ctx *gin.Context, err error) {
+	var appErrors *constant.Errors
+	if errors.As(err, &appErrors) {
+		ctx.JSON(http.StatusOK, &Response{
+				Code: appErrors.Code,
+				Message: appErrors.Message,
+		})
+	}
 }
 
 func RespondWithPaginationSuccess(ctx *gin.Context, data interface{}, metadata interface{}) {
