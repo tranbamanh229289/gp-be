@@ -30,7 +30,7 @@ type IAuthService interface {
 }
 
 type AuthService struct {
-	userRepository auth.IUserRepository
+	userRepo auth.IUserRepository
 	logger *logger.ZapLogger
 	config *config.Config
 	redis *redis.RedisCache
@@ -38,7 +38,7 @@ type AuthService struct {
 
 func NewAuthService(userRepo auth.IUserRepository, config *config.Config, logger *logger.ZapLogger, redis *redis.RedisCache) IAuthService {
 	return &AuthService{
-		userRepository: userRepo,
+		userRepo: userRepo,
 		config: config,
 		logger: logger,
 		redis: redis,
@@ -46,7 +46,7 @@ func NewAuthService(userRepo auth.IUserRepository, config *config.Config, logger
 }
 
 func (s *AuthService) GetAllUsers(ctx context.Context) ([]*dtos.UserResponse, error) {
-	users, err := s.userRepository.FindAll(ctx)
+	users, err := s.userRepo.FindAll(ctx)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &constant.UserNotFound
 	}
@@ -63,7 +63,7 @@ func (s *AuthService) GetAllUsers(ctx context.Context) ([]*dtos.UserResponse, er
 }
 
 func (s *AuthService) GetProfile(ctx context.Context, id string) (*dtos.UserResponse, error) {
-	user, err := s.userRepository.FindByPublicId(ctx, id)
+	user, err := s.userRepo.FindByPublicId(ctx, id)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &constant.UserNotFound
 	}
@@ -75,7 +75,7 @@ func (s *AuthService) GetProfile(ctx context.Context, id string) (*dtos.UserResp
 }
 
 func(s *AuthService) UpdateProfile(ctx context.Context, id string, userRequest *dtos.UserRequest) (*dtos.UserResponse, error) {
-	user, err := s.userRepository.FindByPublicId(ctx, id)
+	user, err := s.userRepo.FindByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.UserNotFound
@@ -88,7 +88,7 @@ func(s *AuthService) UpdateProfile(ctx context.Context, id string, userRequest *
 		return nil, &constant.InternalServer
 	}
 
-	userUpdated, err := s.userRepository.Save(ctx, &auth.User{ID: user.ID, PublicID: publicId, Name: userRequest.Name, Email: userRequest.Email})
+	userUpdated, err := s.userRepo.Save(ctx, &auth.User{ID: user.ID, PublicID: publicId, Name: userRequest.Name, Email: userRequest.Email})
 
 	if err != nil {
 		return nil, &constant.InternalServer
@@ -97,7 +97,7 @@ func(s *AuthService) UpdateProfile(ctx context.Context, id string, userRequest *
 }
 
 func (s *AuthService) Register(ctx context.Context, email, password, name string) (string, string, error) {
-	user, err := s.userRepository.FindByEmail(ctx, email)
+	user, err := s.userRepo.FindByEmail(ctx, email)
 	
 
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
@@ -113,7 +113,7 @@ func (s *AuthService) Register(ctx context.Context, email, password, name string
 		return "", "", &constant.InternalServer
 	}
 
-	userCreated, err := s.userRepository.Save(ctx, &auth.User{
+	userCreated, err := s.userRepo.Save(ctx, &auth.User{
 		PublicID: uuid.New(),
 		Name: name,
 		Email: email,
@@ -151,7 +151,7 @@ func (s *AuthService) Register(ctx context.Context, email, password, name string
 }
 
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, error) {
-	user, err := s.userRepository.FindByEmail(ctx, email)
+	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return "", "", &constant.UserNotFound

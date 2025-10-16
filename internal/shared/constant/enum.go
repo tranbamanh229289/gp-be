@@ -1,5 +1,6 @@
 package constant
 
+// Auth
 type UserRole string
 const (
 	UserRoleUser UserRole = "user"
@@ -11,3 +12,5 @@ const (
 	AccessToken TokenType = "access_token"
 	RefreshToken TokenType = "refresh_token"
 )
+
+// Blockchain

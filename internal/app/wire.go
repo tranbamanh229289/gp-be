@@ -36,7 +36,7 @@ var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.New
 var handlerSet = wire.NewSet(handler.NewAuthHandler)
 
 // Service Set
-var serviceSet = wire.NewSet(service.NewAuthService)
+var serviceSet = wire.NewSet(service.NewAuthService, service.BlockchainService)
 
 // Repository Set
 var repositorySet = wire.NewSet(repository.NewUserRepository)

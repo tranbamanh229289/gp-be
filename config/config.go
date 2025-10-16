@@ -94,6 +94,14 @@ type FluentConfig struct {
 	Timeout time.Duration
 }
 
+type EthereumConfig struct {
+	RPC string
+}
+
+type CronConfig struct {
+
+}
+
 type Config struct {
 	App AppConfig
 	Server ServerConfig
@@ -106,8 +114,9 @@ type Config struct {
 	JWT JwtConfig
 	Zap ZapConfig
 	Fluent FluentConfig
+	Ethereum EthereumConfig
+	Cron CronConfig
 }
-
 
 func NewConfig()(*Config, error) {
 	// read .env file
@@ -203,6 +212,9 @@ func NewConfig()(*Config, error) {
 			Port: viper.GetInt("fluent.port"),
 			Protocol: viper.GetString("fluent.protocol"),
 			Timeout: viper.GetDuration("fluent.timeout"),
+		},
+		Ethereum: EthereumConfig{
+			RPC: viper.GetString("ethereum.fluent"),
 		},
 	}
 	return config, nil

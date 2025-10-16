@@ -18,7 +18,7 @@ func main(){
 	app, err := app.InitializeApplication()
 
 	if err != nil {
-		log.Fatal("Failed to initialize application %v", err)
+		log.Printf("Failed to initialize application %s", err)
 	}
 	defer app.Log.Sync()
 

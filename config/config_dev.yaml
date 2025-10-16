@@ -66,3 +66,6 @@ jwt:
     secret: ""
     access_token_ttl: 100
     refresh_token_ttl: 100
+
+ethereum:
+    rpc: ""
