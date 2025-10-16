@@ -39,7 +39,7 @@ func NewQueue(cfg *config.Config, logger *logger.ZapLogger) (*RabbitQueue, error
 		logger.Error("Failed to set qos", zap.Error(err))
 		return nil, err
 	}
-
+	logger.Info("Successfully connected to RabbitMQ")
 	return &RabbitQueue{connection: conn, channel: ch, logger: logger}, nil 
 
 }

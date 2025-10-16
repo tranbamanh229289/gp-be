@@ -26,6 +26,7 @@ type IAuthService interface {
 	Register(ctx context.Context, email, password, name string) (string, string, error)
 	Login(ctx context.Context, email, password string) (string, string, error)
 	RefreshToken(ctx context.Context, tokenString string) (string, string, error)
+	VerifyToken(tokenString string, tokenType constant.TokenType) (*dtos.Claims, error)
 }
 
 type AuthService struct {
@@ -162,6 +163,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	if err != nil {
 		return "", "", &constant.InternalServer
 	}
+
 	if string(hashedPassword) != user.Password {
 		return "", "", &constant.Unauthorized
 	}
@@ -193,7 +195,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 
 
 func (s *AuthService) RefreshToken(ctx context.Context, tokenString string) (string, string, error) {
-	claims, err := s.VerifyToken(tokenString)
+	claims, err := s.VerifyToken(tokenString, constant.RefreshToken)
 	if err != nil {
 		return "", "", &constant.InvalidToken
 	}
@@ -246,18 +248,28 @@ func (s *AuthService) GetToken(claims *dtos.Claims, tokenType constant.TokenType
 	return tokenString, nil
 }
 
-func (s *AuthService) VerifyToken(tokenString string) (*dtos.Claims, error){
+func (s *AuthService) VerifyToken(tokenString string, tokenType constant.TokenType) (*dtos.Claims, error) {
 	var claims dtos.Claims
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return s.config.JWT.Secret, nil
+		return []byte(s.config.JWT.Secret), nil 
 	})
 	if err != nil {
 		return nil, err
 	}
 	if !token.Valid {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	tokenRedisKey := string(tokenType) + "_" + claims.ID
+	tokenRedisValue, err := s.redis.Get(tokenRedisKey)
+	if err != nil {
+		return nil, err
+	}
+
+	if (tokenRedisValue != tokenString) {
 		return nil, fmt.Errorf("invalid token")
 	}
 

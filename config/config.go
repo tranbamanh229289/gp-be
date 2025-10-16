@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -150,6 +151,7 @@ func NewConfig()(*Config, error) {
 			User: viper.GetString("postgres.user"),
 			Password: viper.GetString("postgres.password"),
 			Name: viper.GetString("postgres.name"),
+			Driver: viper.GetString("postgres.driver"),
 			SSLMode: viper.GetString("postgres.sslmode"),
 			MaxConnections: viper.GetInt("postgres.max_connections"),
 		},
@@ -218,7 +220,7 @@ func GetPostgresDSN(config *Config) string {
 	dbName := config.Postgres.Name
 	sslmode := config.Postgres.SSLMode
 
-	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbName, sslmode)
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, strconv.Itoa(port), user, password, dbName, sslmode)
 }
 
 func GetRabbitMQDSN(config *Config) string {
@@ -232,6 +234,6 @@ func GetRabbitMQDSN(config *Config) string {
 }
 
 func GetElasticsearchAddress(config *Config) []string {
-	return []string{fmt.Sprintf("http://%s:%d", config.Elasticsearch.Host, config.Elasticsearch.Port)}
+	return []string{fmt.Sprintf("http://%s:%s", config.Elasticsearch.Host, strconv.Itoa(config.Elasticsearch.Port))}
 }
 

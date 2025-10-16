@@ -14,13 +14,15 @@ clean:
 	rm -rf -o ${BUILD_DIR}
 
 #docker
-infra: 
-	docker compose -f docker-compose-infra.yml -d
+docker-infra: 
+	docker compose -f docker-compose-infra.yml up -d
 
-dev:
-	docker compose -f docker-compose-dev.yml -d
+docker-dev:
+	docker compose -f docker-compose-dev.yml up -d
 	
 #wire
+wire: 
+	wire gen ./internal/app
 
 #graphql
 gql-init:

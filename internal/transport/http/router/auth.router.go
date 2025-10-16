@@ -1,21 +1,25 @@
 package router
 
 import (
+	"be/internal/shared/constant"
 	"be/internal/transport/http/handler"
 	"be/internal/transport/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupUserRouter(apiGroup *gin.RouterGroup, authHandler *handler.AuthHandler) {
+func SetupAuthRouter(apiGroup *gin.RouterGroup, authHandler *handler.AuthHandler) {
+	authGroup := apiGroup.Group("auth")
+	
+	authGroup.GET("refresh-token", authHandler.RefreshToken)
+	authGroup.POST("register", authHandler.Register)
+	authGroup.POST("login", authHandler.Login)
+	
+	adminGroup := apiGroup.Group("admin")
+	adminGroup.GET("", authHandler.GetAllUser)
+
 	userGroup := apiGroup.Group("users")
-	{
-		userGroup.Use(middleware.AuthMiddleware())
-		userGroup.GET("/", authHandler.GetAllUser)
-		userGroup.GET("profile/:id", authHandler.GetProfile)
-		userGroup.PUT("profile/:id", authHandler.UpdateProfile)
-		userGroup.GET("refresh-token", authHandler.RefreshToken)
-		userGroup.POST("register", authHandler.Register)
-		userGroup.POST("login", authHandler.Login)
-	}
+	userGroup.Use(middleware.AuthenticateMiddleware(authHandler.GetAuthService()), middleware.AuthorizeMiddleware(constant.UserRoleUser))
+	userGroup.GET("profile/:id", authHandler.GetProfile)
+	userGroup.PUT("profile/:id", authHandler.UpdateProfile)
 }

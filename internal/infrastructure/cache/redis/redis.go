@@ -25,7 +25,7 @@ type RedisCache struct {
 }
 
 func NewCache(config *config.Config, logger *logger.ZapLogger) (*RedisCache, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), config.Redis.Timeout * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), config.Redis.Timeout)
 	defer cancel()
 
 	client := redis.NewClient(&redis.Options{

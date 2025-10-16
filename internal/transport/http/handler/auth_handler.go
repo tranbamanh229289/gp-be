@@ -98,3 +98,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		RefreshToken: refreshToken,
 	})
 }
+
+func (h *AuthHandler) GetAuthService() service.IAuthService{
+	return h.authService
+}

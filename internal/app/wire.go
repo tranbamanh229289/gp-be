@@ -1,3 +1,6 @@
+//go:build wireinject
+// +build wireinject
+
 package app
 
 import (
@@ -10,6 +13,8 @@ import (
 	"be/internal/infrastructure/message_queue/rabbitmq"
 	"be/internal/service"
 	"be/internal/transport/http/handler"
+	"be/internal/transport/http/middleware"
+	"be/internal/transport/http/router"
 	"be/pkg/fluent"
 	"be/pkg/logger"
 
@@ -36,6 +41,16 @@ var serviceSet = wire.NewSet(service.NewAuthService)
 // Repository Set
 var repositorySet = wire.NewSet(repository.NewUserRepository)
 
+// Router Set
+var routerSet = wire.NewSet(router.NewRouter)
+
+// Middleware Set
+var middlewareSet = wire.NewSet(middleware.NewMiddleware)
+
+
+// Server Set
+var serverSet = wire.NewSet(NewServer)
+
 func InitializeApplication() (App, error) {
     panic(wire.Build(
         configSet,
@@ -46,6 +61,9 @@ func InitializeApplication() (App, error) {
         handlerSet,
         serviceSet,
         repositorySet,
+				routerSet,
+				middlewareSet,
+				serverSet,
         wire.Struct(new(App), "*"),
     ))
 }

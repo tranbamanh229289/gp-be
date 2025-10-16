@@ -13,7 +13,7 @@ server:
         host: "localhost"
         port: 8082
 tls:
-    enabled: true
+    enabled: false
     cert_file: "cert.pem"
     key_file: "key.pem"
 
@@ -23,6 +23,7 @@ postgres:
     name: "myapp"
     user: ""
     password: ""
+    driver: "postgres"
     sslmode: "disable"
     max_connections: 20
 
@@ -48,13 +49,13 @@ redis:
     password: ""
     db: 0
     max_connections: 20
-    timeout: 30
+    timeout: 10s
 
 rabbitmq:
     host: "localhost"
     port: "5672"
-    username: ""
-    password: ""
+    username: "rabbitmq"
+    password: "rabbitmq"
     vhost: "/"
     prefetch_count: 10
     connection_timeout: 30

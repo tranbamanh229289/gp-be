@@ -5,6 +5,7 @@ import (
 	"be/pkg/logger"
 	"database/sql"
 
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -54,6 +55,10 @@ func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*PostgresDB, error) {
 			zap.String("addresses", dsn))
 	
 	return &PostgresDB{sqlDB: sqlDB, gormDB: gormDB, logger: logger}, nil
+}
+
+func (p *PostgresDB) GetGormDB() *gorm.DB {
+	return p.gormDB
 }
 
 func (p *PostgresDB) Close() error {

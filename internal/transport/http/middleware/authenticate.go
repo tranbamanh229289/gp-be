@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"be/internal/infrastructure/cache/redis"
 	"be/internal/service"
 	"be/internal/shared/constant"
 	response "be/internal/shared/helper"
@@ -10,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthenticateMiddleware(authService *service.AuthService, redisCache *redis.RedisCache) gin.HandlerFunc {
+func AuthenticateMiddleware(authService service.IAuthService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
@@ -28,12 +27,15 @@ func AuthenticateMiddleware(authService *service.AuthService, redisCache *redis.
 
 		tokenString := parts[1]
 		
-		claims, err := authService.VerifyToken(tokenString)
+		claims, err := authService.VerifyToken(tokenString, constant.AccessToken)
 		if err != nil {
 			response.RespondError(c, &constant.InvalidToken)
 			c.Abort()
 			return
 		}
+
+		c.Set("user_id", claims.ID)
+		c.Set("role", claims.ID)
 
 		c.Next()
 	}

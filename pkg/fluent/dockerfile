@@ -1,0 +1,14 @@
+FROM fluent/fluentd:v1.16-1
+
+USER root
+
+# Install required plugins
+RUN fluent-gem install fluent-plugin-elasticsearch
+
+# Create log directories
+RUN mkdir -p /fluentd/log/buffer /fluentd/log/failed
+
+# Fix permissions
+RUN chown -R fluent:fluent /fluentd
+
+USER fluent
