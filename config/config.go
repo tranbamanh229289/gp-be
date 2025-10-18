@@ -94,7 +94,7 @@ type FluentConfig struct {
 	Timeout time.Duration
 }
 
-type EthereumConfig struct {
+type EtherConfig struct {
 	RPC string
 }
 
@@ -114,7 +114,7 @@ type Config struct {
 	JWT JwtConfig
 	Zap ZapConfig
 	Fluent FluentConfig
-	Ethereum EthereumConfig
+	Ether EtherConfig
 	Cron CronConfig
 }
 
@@ -213,7 +213,7 @@ func NewConfig()(*Config, error) {
 			Protocol: viper.GetString("fluent.protocol"),
 			Timeout: viper.GetDuration("fluent.timeout"),
 		},
-		Ethereum: EthereumConfig{
+		Ether: EtherConfig{
 			RPC: viper.GetString("ethereum.fluent"),
 		},
 	}

@@ -27,7 +27,29 @@ func NewServer(cfg *config.Config, logger *logger.ZapLogger) *Server{
 
 	if cfg.TLS.Enabled {
 		httpServer.TLSConfig = &tls.Config{
-			MinVersion: tls.VersionTLS13,
+			MinVersion: tls.VersionTLS12,
+			MaxVersion: tls.VersionTLS13,
+			CipherSuites: []uint16{
+				tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+				tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+				tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+				tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			},
+
+			CurvePreferences: []tls.CurveID{
+				tls.X25519,
+				tls.CurveP256,
+				tls.CurveP384,
+			},
+
+			SessionTicketsDisabled: false,
+
+			NextProtos: []string{"h2", "http/1.1"},
+
+			ClientAuth: tls.NoClientCert,
+			
+			Renegotiation: tls.RenegotiateNever,
 		}
 	}
 	return &Server{httpServer: httpServer, logger: logger}

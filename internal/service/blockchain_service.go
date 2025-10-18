@@ -2,6 +2,7 @@ package service
 
 import (
 	"be/internal/domain/blockchain"
+	"be/internal/infrastructure/blockchain/ether"
 	"be/internal/shared/constant"
 	"be/pkg/logger"
 	"context"
@@ -11,19 +12,18 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type BlockchainService struct {
 	logger *logger.ZapLogger
-	ethClient *ethclient.Client
+	ethclient *ether.Ether
 	blockchainRepo blockchain.IBlockchainRepository
 }	
 
-func NewBlockchainService(logger *logger.ZapLogger, ethClient *ethclient.Client, blockchainRepo blockchain.IBlockchainRepository) *BlockchainService {
+func NewBlockchainService(logger *logger.ZapLogger, ethclient *ether.Ether, blockchainRepo blockchain.IBlockchainRepository) *BlockchainService {
 	return &BlockchainService{
 		logger: logger,
-		ethClient: ethClient,
+		ethclient: ethclient,
 		blockchainRepo: blockchainRepo,
 	}
 }
@@ -33,14 +33,14 @@ func (s *BlockchainService) CrawlBlocks(ctx context.Context) error {
 
 	lastBlockCrawled := s.blockchainRepo.GetLastBlock(ctx)
 
-	lastBlock, err := s.ethClient.BlockNumber(ctx)
+	lastBlock, err := s.ethclient.GetClient().BlockNumber(ctx)
 	if err != nil {
 		return &constant.BadRequest
 	}
 
 	var blockDatas []*blockchain.Block
 	for blockNum := lastBlockCrawled + 1; blockNum < lastBlock; blockNum ++ {
-		block, err := s.ethClient.BlockByNumber(ctx, big.NewInt(int64(blockNum)))
+		block, err := s.ethclient.GetClient().BlockByNumber(ctx, big.NewInt(int64(blockNum)))
 		if err != nil {
 			return &constant.BadRequest
 		}
@@ -75,18 +75,18 @@ func (s *BlockchainService) CrawlTransactions(ctx context.Context, address strin
 
 	lastBlockCrawled := s.blockchainRepo.GetLastBlock(ctx)
 
-	lastBlock, err := s.ethClient.BlockNumber(ctx)
+	lastBlock, err := s.ethclient.GetClient().BlockNumber(ctx)
 	if err != nil {
 		return &constant.BadRequest
 	}
 	
-	chainID, err := s.ethClient.NetworkID(ctx)
+	chainID, err := s.ethclient.GetClient().NetworkID(ctx)
 	if err != nil {
 		return &constant.BadRequest
 	}
 	var txDatas []*blockchain.Transaction
 	for blockNum := lastBlockCrawled + 1; blockNum < lastBlock; blockNum ++ {
-		block, err := s.ethClient.BlockByNumber(ctx, big.NewInt(int64(blockNum)))
+		block, err := s.ethclient.GetClient().BlockByNumber(ctx, big.NewInt(int64(blockNum)))
 		if err != nil {
 			return &constant.BadRequest
 		}
@@ -103,7 +103,7 @@ func (s *BlockchainService) CrawlTransactions(ctx context.Context, address strin
 			}
 			addr := common.HexToAddress(address)
 			if from == addr || *to == addr {
-				receipt, err := s.ethClient.TransactionReceipt(ctx, tx.Hash())
+				receipt, err := s.ethclient.GetClient().TransactionReceipt(ctx, tx.Hash())
 				if err != nil {
 					return &constant.BadRequest
 				}
@@ -145,7 +145,7 @@ func (s *BlockchainService) CrawlEvents(ctx context.Context, contractAddress str
 
 	lastBlockCrawled := s.blockchainRepo.GetLastBlock(ctx)
 
-	lastBlock, err := s.ethClient.BlockNumber(ctx)
+	lastBlock, err := s.ethclient.GetClient().BlockNumber(ctx)
 	if err != nil {
 		return &constant.BadRequest
 	}
@@ -156,7 +156,7 @@ func (s *BlockchainService) CrawlEvents(ctx context.Context, contractAddress str
 		Addresses: []common.Address{common.HexToAddress(contractAddress)},
 	}
 
-	logs, err := s.ethClient.FilterLogs(ctx, query)
+	logs, err := s.ethclient.GetClient().FilterLogs(ctx, query)
 
 	if err != nil {
 		return &constant.BadRequest

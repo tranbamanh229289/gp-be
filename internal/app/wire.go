@@ -5,6 +5,7 @@ package app
 
 import (
 	"be/config"
+	"be/internal/infrastructure/blockchain/ether"
 	"be/internal/infrastructure/cache/redis"
 	"be/internal/infrastructure/database/elasticsearch"
 	"be/internal/infrastructure/database/mongo"
@@ -31,6 +32,7 @@ var configSet = wire.NewSet(config.NewConfig)
 var dbSet = wire.NewSet(postgres.NewDB, mongo.NewDB, elasticsearch.NewDB)
 var cacheSet = wire.NewSet(redis.NewCache)
 var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.NewProducer)
+var etherSet = wire.NewSet(ether.NewEther)
 
 // Handler Set
 var handlerSet = wire.NewSet(handler.NewAuthHandler)
@@ -46,7 +48,6 @@ var routerSet = wire.NewSet(router.NewRouter)
 
 // Middleware Set
 var middlewareSet = wire.NewSet(middleware.NewMiddleware)
-
 
 // Server Set
 var serverSet = wire.NewSet(NewServer)
