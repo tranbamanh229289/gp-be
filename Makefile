@@ -15,10 +15,10 @@ clean:
 
 #docker
 docker-infra: 
-	docker compose -f docker-compose-infra.yml up -d
+	docker compose -f ./build/docker-compose-infra.yml up -d
 
 docker-dev:
-	docker compose -f docker-compose-dev.yml up -d
+	docker compose -f ./build/docker-compose-dev.yml up -d
 	
 #wire
 wire: 

@@ -35,10 +35,10 @@ var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.New
 var etherSet = wire.NewSet(ether.NewEther)
 
 // Handler Set
-var handlerSet = wire.NewSet(handler.NewAuthHandler)
+var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler)
 
 // Service Set
-var serviceSet = wire.NewSet(service.NewAuthService, service.BlockchainService)
+var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.BlockchainService)
 
 // Repository Set
 var repositorySet = wire.NewSet(repository.NewUserRepository)
@@ -53,18 +53,18 @@ var middlewareSet = wire.NewSet(middleware.NewMiddleware)
 var serverSet = wire.NewSet(NewServer)
 
 func InitializeApplication() (App, error) {
-    panic(wire.Build(
-        configSet,
-        logSet,
-        dbSet,
-        cacheSet,
-        queueSet,
-        handlerSet,
-        serviceSet,
-        repositorySet,
-				routerSet,
-				middlewareSet,
-				serverSet,
-        wire.Struct(new(App), "*"),
-    ))
+	panic(wire.Build(
+		configSet,
+		logSet,
+		dbSet,
+		cacheSet,
+		queueSet,
+		handlerSet,
+		serviceSet,
+		repositorySet,
+		routerSet,
+		middlewareSet,
+		serverSet,
+		wire.Struct(new(App), "*"),
+	))
 }

@@ -7,17 +7,20 @@ import (
 )
 
 type Router struct {
-	authHandler *handler.AuthHandler
+	authJWTHandler *handler.AuthJWTHandler
+	authZkHandler  *handler.AuthZkHandler
 }
 
-func NewRouter(authHandler *handler.AuthHandler) *Router {
+func NewRouter(authJWTHandler *handler.AuthJWTHandler, authZKHandler *handler.AuthZkHandler) *Router {
 	return &Router{
-		authHandler: authHandler,
+		authJWTHandler: authJWTHandler,
+		authZkHandler:  authZKHandler,
 	}
 }
 
 func (r *Router) SetupRoutes(engine *gin.Engine) {
 	apiGroup := engine.Group("api/v1")
 
-	SetupAuthRouter(apiGroup, r.authHandler)
+	SetupAuthJWTRouter(apiGroup, r.authJWTHandler)
+	SetupAuthZkRouter(apiGroup, r.authZkHandler)
 }

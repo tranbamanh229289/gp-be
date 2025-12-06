@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type IAuthService interface {
+type IAuthJWTService interface {
 	GetAllUsers(ctx context.Context) ([]*dtos.UserResponse, error)
 	GetProfile(ctx context.Context, id string) (*dtos.UserResponse, error)
 	UpdateProfile(ctx context.Context, id string, user *dtos.UserRequest) (*dtos.UserResponse, error)
@@ -29,52 +29,52 @@ type IAuthService interface {
 	VerifyToken(tokenString string, tokenType constant.TokenType) (*dtos.Claims, error)
 }
 
-type AuthService struct {
+type AuthJWTService struct {
 	userRepo auth.IUserRepository
-	logger *logger.ZapLogger
-	config *config.Config
-	redis *redis.RedisCache
+	logger   *logger.ZapLogger
+	config   *config.Config
+	redis    *redis.RedisCache
 }
 
-func NewAuthService(userRepo auth.IUserRepository, config *config.Config, logger *logger.ZapLogger, redis *redis.RedisCache) IAuthService {
-	return &AuthService{
+func NewAuthJWTService(userRepo auth.IUserRepository, config *config.Config, logger *logger.ZapLogger, redis *redis.RedisCache) IAuthJWTService {
+	return &AuthJWTService{
 		userRepo: userRepo,
-		config: config,
-		logger: logger,
-		redis: redis,
+		config:   config,
+		logger:   logger,
+		redis:    redis,
 	}
 }
 
-func (s *AuthService) GetAllUsers(ctx context.Context) ([]*dtos.UserResponse, error) {
+func (s *AuthJWTService) GetAllUsers(ctx context.Context) ([]*dtos.UserResponse, error) {
 	users, err := s.userRepo.FindAll(ctx)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &constant.UserNotFound
 	}
 	var resp []*dtos.UserResponse
 	for _, u := range users {
-			resp = append(resp, &dtos.UserResponse{
-					ID:    u.PublicID.String(),
-					Name:  u.Name,
-					Email: u.Email,
-			})
+		resp = append(resp, &dtos.UserResponse{
+			ID:    u.PublicID.String(),
+			Name:  u.Name,
+			Email: u.Email,
+		})
 	}
 
 	return resp, nil
 }
 
-func (s *AuthService) GetProfile(ctx context.Context, id string) (*dtos.UserResponse, error) {
+func (s *AuthJWTService) GetProfile(ctx context.Context, id string) (*dtos.UserResponse, error) {
 	user, err := s.userRepo.FindByPublicId(ctx, id)
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, &constant.UserNotFound
 	}
 	return &dtos.UserResponse{
-		ID: id,
-		Name: user.Name,
+		ID:    id,
+		Name:  user.Name,
 		Email: user.Email,
 	}, nil
 }
 
-func(s *AuthService) UpdateProfile(ctx context.Context, id string, userRequest *dtos.UserRequest) (*dtos.UserResponse, error) {
+func (s *AuthJWTService) UpdateProfile(ctx context.Context, id string, userRequest *dtos.UserRequest) (*dtos.UserResponse, error) {
 	user, err := s.userRepo.FindByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -96,18 +96,17 @@ func(s *AuthService) UpdateProfile(ctx context.Context, id string, userRequest *
 	return &dtos.UserResponse{Name: userUpdated.Name, Email: userUpdated.Email}, nil
 }
 
-func (s *AuthService) Register(ctx context.Context, email, password, name string) (string, string, error) {
+func (s *AuthJWTService) Register(ctx context.Context, email, password, name string) (string, string, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
-	
 
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound){
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return "", "", &constant.InternalServer
 	}
 
 	if user != nil {
 		return "", "", &constant.UserExisted
-	} 
-	
+	}
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return "", "", &constant.InternalServer
@@ -115,10 +114,10 @@ func (s *AuthService) Register(ctx context.Context, email, password, name string
 
 	userCreated, err := s.userRepo.Save(ctx, &auth.User{
 		PublicID: uuid.New(),
-		Name: name,
-		Email: email,
+		Name:     name,
+		Email:    email,
 		Password: string(hashedPassword),
-		Role: constant.UserRoleUser,
+		Role:     constant.UserRoleUser,
 	})
 
 	if err != nil {
@@ -126,31 +125,31 @@ func (s *AuthService) Register(ctx context.Context, email, password, name string
 	}
 
 	accessToken, err := s.GetToken(&dtos.Claims{
-		ID: userCreated.PublicID.String(),
+		ID:    userCreated.PublicID.String(),
 		Email: email,
-		Name: name,
+		Name:  name,
 	}, constant.AccessToken)
 
 	if err != nil {
 		s.logger.Error("Failed to generate access token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
-	
+
 	refreshToken, err := s.GetToken(&dtos.Claims{
-		ID: userCreated.PublicID.String(),
+		ID:    userCreated.PublicID.String(),
 		Email: email,
-		Name: name,
+		Name:  name,
 	}, constant.RefreshToken)
-	
+
 	if err != nil {
 		s.logger.Error("Failed to generate refresh token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
 
 	return accessToken, refreshToken, nil
 }
 
-func (s *AuthService) Login(ctx context.Context, email, password string) (string, string, error) {
+func (s *AuthJWTService) Login(ctx context.Context, email, password string) (string, string, error) {
 	user, err := s.userRepo.FindByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -169,66 +168,64 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	}
 
 	accessToken, err := s.GetToken(&dtos.Claims{
-		ID: user.PublicID.String(),
+		ID:    user.PublicID.String(),
 		Email: email,
-		Name: user.Name,
+		Name:  user.Name,
 	}, constant.AccessToken)
 
 	if err != nil {
 		s.logger.Error("Failed to generate access token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
-	
+
 	refreshToken, err := s.GetToken(&dtos.Claims{
-		ID: user.PublicID.String(),
+		ID:    user.PublicID.String(),
 		Email: email,
-		Name: user.Name,
+		Name:  user.Name,
 	}, constant.RefreshToken)
-	
+
 	if err != nil {
 		s.logger.Error("Failed to generate refresh token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
 
 	return accessToken, refreshToken, nil
 }
 
-
-func (s *AuthService) RefreshToken(ctx context.Context, tokenString string) (string, string, error) {
+func (s *AuthJWTService) RefreshToken(ctx context.Context, tokenString string) (string, string, error) {
 	claims, err := s.VerifyToken(tokenString, constant.RefreshToken)
 	if err != nil {
 		return "", "", &constant.InvalidToken
 	}
-	
+
 	accessToken, err := s.GetToken(claims, constant.AccessToken)
 
 	if err != nil {
 		s.logger.Error("Failed to generate access token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
-	
+
 	refreshToken, err := s.GetToken(claims, constant.RefreshToken)
-	
+
 	if err != nil {
 		s.logger.Error("Failed to generate refresh token", zap.Error(err))
-		return "", "", &constant.InternalServer 
+		return "", "", &constant.InternalServer
 	}
 	return accessToken, refreshToken, nil
 }
 
-
-func (s *AuthService) GetToken(claims *dtos.Claims, tokenType constant.TokenType) (string, error) {
+func (s *AuthJWTService) GetToken(claims *dtos.Claims, tokenType constant.TokenType) (string, error) {
 	now := time.Now()
 	expiration := time.Now()
-	if tokenType == constant.AccessToken{
+	if tokenType == constant.AccessToken {
 		expiration = expiration.Add(s.config.JWT.AccessTokenTTL)
 	} else {
 		expiration = expiration.Add(s.config.JWT.RefreshTokenTTL)
 	}
-	
+
 	claims.RegisteredClaims = jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(expiration),
-		IssuedAt: jwt.NewNumericDate(now),
+		IssuedAt:  jwt.NewNumericDate(now),
 		NotBefore: jwt.NewNumericDate(now),
 	}
 
@@ -248,13 +245,13 @@ func (s *AuthService) GetToken(claims *dtos.Claims, tokenType constant.TokenType
 	return tokenString, nil
 }
 
-func (s *AuthService) VerifyToken(tokenString string, tokenType constant.TokenType) (*dtos.Claims, error) {
+func (s *AuthJWTService) VerifyToken(tokenString string, tokenType constant.TokenType) (*dtos.Claims, error) {
 	var claims dtos.Claims
 	token, err := jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(s.config.JWT.Secret), nil 
+		return []byte(s.config.JWT.Secret), nil
 	})
 	if err != nil {
 		return nil, err
@@ -269,7 +266,7 @@ func (s *AuthService) VerifyToken(tokenString string, tokenType constant.TokenTy
 		return nil, err
 	}
 
-	if (tokenRedisValue != tokenString) {
+	if tokenRedisValue != tokenString {
 		return nil, fmt.Errorf("invalid token")
 	}
 
