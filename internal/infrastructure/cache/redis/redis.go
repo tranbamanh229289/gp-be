@@ -29,25 +29,23 @@ func NewCache(config *config.Config, logger *logger.ZapLogger) (*RedisCache, err
 	defer cancel()
 
 	client := redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
-		Password: config.Redis.Password,
-		DB: config.Redis.DB,
-		PoolSize: config.Redis.MaxConnections,
-		DialTimeout: config.Redis.Timeout,
-		ReadTimeout: config.Redis.Timeout,
+		Addr:         fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port),
+		Password:     config.Redis.Password,
+		DB:           config.Redis.DB,
+		PoolSize:     config.Redis.MaxConnections,
+		DialTimeout:  config.Redis.Timeout,
+		ReadTimeout:  config.Redis.Timeout,
 		WriteTimeout: config.Redis.Timeout,
 	})
-	
+
 	if err := client.Ping(ctx).Err(); err != nil {
-		logger.Error("Failed to connect to redis: ", 
-			zap.Error(err), 
-			zap.String("addresses", fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)))
+		logger.Error(fmt.Sprintf("Failed to connect to redis: %s", err))
 		return nil, err
-	} 
-	logger.Info("Successfully connected to Redis", 
+	}
+	logger.Info("Successfully connected to Redis",
 		zap.String("addresses", fmt.Sprintf("%s:%d", config.Redis.Host, config.Redis.Port)))
 
-	return &RedisCache{client: client, logger: logger}, nil;
+	return &RedisCache{client: client, logger: logger}, nil
 }
 
 func (r *RedisCache) Get(key string) (any, error) {
@@ -67,7 +65,7 @@ func (r *RedisCache) Subscribe(channel string) (*redis.PubSub, error) {
 }
 
 func (r *RedisCache) Publish(channel string, message any) error {
-	return r.client.Publish(context.Background(),  channel, message).Err()
+	return r.client.Publish(context.Background(), channel, message).Err()
 }
 
 func (r *RedisCache) Close() error {

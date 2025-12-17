@@ -8,15 +8,15 @@ import (
 )
 
 type UserRepository struct {
-	db *postgres.PostgresDB
+	db     *postgres.PostgresDB
 	logger *logger.ZapLogger
 }
 
-func NewUserRepository(db *postgres.PostgresDB, logger *logger.ZapLogger) auth.IUserRepository{
+func NewUserRepository(db *postgres.PostgresDB, logger *logger.ZapLogger) auth.IUserRepository {
 	return &UserRepository{db: db, logger: logger}
 }
 
-func (r *UserRepository) FindById(ctx context.Context, id int64) (*auth.User, error) {
+func (r *UserRepository) FindUserById(ctx context.Context, id int64) (*auth.User, error) {
 	var user auth.User
 	if err := r.db.GetGormDB().WithContext(ctx).First(&user).Error; err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (r *UserRepository) FindById(ctx context.Context, id int64) (*auth.User, er
 	return &user, nil
 }
 
-func (r *UserRepository) FindByPublicId(ctx context.Context, id string) (*auth.User, error) {
+func (r *UserRepository) FindUserByPublicId(ctx context.Context, id string) (*auth.User, error) {
 	var user auth.User
 	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", id).First(&user).Error; err != nil {
 		return nil, err
@@ -34,7 +34,7 @@ func (r *UserRepository) FindByPublicId(ctx context.Context, id string) (*auth.U
 	return &user, nil
 }
 
-func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*auth.User, error) {
+func (r *UserRepository) FindUserByEmail(ctx context.Context, email string) (*auth.User, error) {
 	var user auth.User
 	if err := r.db.GetGormDB().WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, err
@@ -42,20 +42,19 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*auth.U
 	return &user, nil
 }
 
-func (r *UserRepository) FindAll(ctx context.Context)([]*auth.User, error){
+func (r *UserRepository) FindAllUsers(ctx context.Context) ([]*auth.User, error) {
 	var users []*auth.User
 	if err := r.db.GetGormDB().WithContext(ctx).Find(&users).Error; err != nil {
 		return nil, err
 	}
-	
+
 	return users, nil
 }
 
-func (r *UserRepository) Save(ctx context.Context, user *auth.User) (*auth.User, error) {
+func (r *UserRepository) SaveUser(ctx context.Context, user *auth.User) (*auth.User, error) {
 	if err := r.db.GetGormDB().WithContext(ctx).Save(user).Error; err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
-

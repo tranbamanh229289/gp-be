@@ -62,10 +62,53 @@ rabbitmq:
     heartbeat: 60
     reconnect_delay: 5
 
+kafka:
+    producer:
+        bootstrap_servers: localhost:9092,localhost:9093,localhost:9094
+        acks: all
+        compress_type: snapy
+        linger_ms: 10
+        batch_size: 16384
+        enable_idempotence: true
+        retries: 10
+    consumer:
+        bootstrap_servers: localhost:9092,localhost:9093,localhost:9094
+        auto_offset_reset: earliest
+        session_timeout_ms: 6000
+        enable_auto_commit: true
+        auto_commit_interval_ms: 5000
+
 jwt:
     secret: ""
     access_token_ttl: 100
     refresh_token_ttl: 100
 
-ethereum:
-    rpc: ""
+blockchain:
+    eth:
+        main:
+            rpc: "https://1rpc.io/eth"
+            resolver: "ethereum:main"
+            contract:
+                state: "0x3C9acB2205Aa72A05F6D77d708b5Cf85FCa3a896"
+    polygon:
+        main:
+            rpc: "https://1rpc.io/matic"
+            resolver: "polygon:main"
+            contract:
+                state: "0x624ce98D2d27b20b8f8d521723Df8fC4db71D79D"
+        amoy:
+            rpc: "https://polygon-amoy.drpc.org"
+            resolver: "polygon:amoy"
+            contract:
+                state: "0x1a4cC30f2aA0377b0c3bc9848766D90cb4404124"
+
+circuit:
+    mt_level: 40
+    mt_level_onchain: 32
+    mt_level_claim: 32
+    proving_key_path: ""
+    verifying_key_path: ""
+    state_transition_wasm_path: ""
+    auth_v3_wasm_path: ""
+    credential_atomic_query_v3_wasm_path: ""
+    credential_atomic_query_v3_on_chain_wasm_path: ""

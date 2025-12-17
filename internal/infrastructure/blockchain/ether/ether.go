@@ -10,8 +10,8 @@ type Ether struct {
 	client *ethclient.Client
 }
 
-func NewEther(cfg *config.Config) (*Ether, error) {
-	client, err := ethclient.Dial(cfg.Ether.RPC)
+func NewEther(config *config.Config) (*Ether, error) {
+	client, err := ethclient.Dial(config.Blockchain.RPC)
 	if err != nil {
 		return nil, err
 	}

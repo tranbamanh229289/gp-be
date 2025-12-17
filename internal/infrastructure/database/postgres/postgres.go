@@ -4,6 +4,7 @@ import (
 	"be/config"
 	"be/pkg/logger"
 	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
@@ -12,20 +13,19 @@ import (
 )
 
 type PostgresDB struct {
-	sqlDB *sql.DB
+	sqlDB  *sql.DB
 	gormDB *gorm.DB
 	logger *logger.ZapLogger
 }
 
 func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*PostgresDB, error) {
-	// native sql	
+	// native sql
 	dsn := config.GetPostgresDSN(cfg)
 
 	sqlDB, err := sql.Open(cfg.Postgres.Driver, dsn)
 	if err != nil {
-		logger.Error("Failed to connect to database:", 
-			zap.Error(err), 
-			zap.String("addresses", dsn))
+		logger.Error(fmt.Sprintf("Failed to connect to database: %s", err))
+
 		return nil, err
 	}
 
@@ -33,9 +33,7 @@ func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*PostgresDB, error) {
 
 	pingErr := sqlDB.Ping()
 	if pingErr != nil {
-		logger.Error("Failed to ping to database:", 
-			zap.Error(pingErr), 
-			zap.String("addresses", dsn))
+		logger.Error(fmt.Sprintf("Failed to ping to database: %s", err))
 		return nil, err
 	}
 
@@ -45,15 +43,13 @@ func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*PostgresDB, error) {
 	}), &gorm.Config{})
 
 	if err != nil {
-		logger.Error("Failed to connect to database:", 
-			zap.Error(err), 
-			zap.String("addresses", dsn))
+		logger.Error(fmt.Sprintf("Failed to connect to database: %s", err))
 		return nil, err
 	}
 
-	logger.Info("Successfully to connect to database:",  
-			zap.String("addresses", dsn))
-	
+	logger.Info("Successfully to connect to database:",
+		zap.String("addresses", dsn))
+
 	return &PostgresDB{sqlDB: sqlDB, gormDB: gormDB, logger: logger}, nil
 }
 
@@ -63,8 +59,7 @@ func (p *PostgresDB) GetGormDB() *gorm.DB {
 
 func (p *PostgresDB) Close() error {
 	if err := p.sqlDB.Close(); err != nil {
-		p.logger.Error("Failed to close to database:", 
-			zap.Error(err),)
+		p.logger.Error(fmt.Sprintf("Failed to close to database: %s", err))
 		return err
 	}
 	return nil

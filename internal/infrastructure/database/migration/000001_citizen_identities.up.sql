@@ -1,0 +1,20 @@
+CREATE TABLE citizen_identities (
+    id SERIAL PRIMARY KEY,
+    public_id UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+    id_number VARCHAR(20) UNIQUE NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    gender VARCHAR(20) NOT NULL,
+    date_of_birth DATE NOT NULL,
+    place_of_birth TEXT,
+    place_of_resident TEXT,
+    status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    issue_date DATE NOT NULL,
+    expiry_date DATE NOT NULL,
+    issuer_by VARCHAR(255),
+    issue_did VARCHAR(255),
+    holder_did VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
+);

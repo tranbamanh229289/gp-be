@@ -3,7 +3,7 @@ package middleware
 import (
 	"be/internal/shared/constant"
 	response "be/internal/shared/helper"
-	"be/internal/transport/http/dtos"
+	"be/internal/transport/http/dto"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +17,7 @@ func AuthorizeMiddleware(allowedRoles ...constant.UserRole) gin.HandlerFunc {
 			return
 		}
 
-		claims, ok := user.(*dtos.Claims)
+		claims, ok := user.(*dto.Claims)
 		if !ok {
 			response.RespondError(c, &constant.InternalServer)
 			c.Abort()

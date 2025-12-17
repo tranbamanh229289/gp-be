@@ -1,0 +1,20 @@
+CREATE TABLE academic_degrees (
+    id SERIAL PRIMARY KEY,
+    public_id UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
+    cid INTEGER NOT NULL REFERENCES citizen_identities(id) ON DELETE CASCADE,
+    degree_number VARCHAR(50) UNIQUE NOT NULL,
+    degree_type VARCHAR(50) NOT NULL,
+    major VARCHAR(255) NOT NULL,
+    university VARCHAR(255) NOT NULL,
+    graduate_year SMALLINT NOT NULL,
+    gpa VARCHAR(10),
+    classification VARCHAR(50),
+    status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    issue_date DATE NOT NULL,
+    expiry_date DATE NOT NULL,
+    issuer_by VARCHAR(255),
+    issuer_did VARCHAR(255),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
+);

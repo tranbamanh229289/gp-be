@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS citizen_identities CASCADE;

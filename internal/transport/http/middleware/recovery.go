@@ -8,7 +8,6 @@ func RecoveryMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if r := recover(); r != nil {
-				
 				c.Abort()
 			}
 		}()

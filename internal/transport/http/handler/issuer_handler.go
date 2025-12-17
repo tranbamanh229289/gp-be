@@ -1,8 +1,10 @@
 package handler
 
-import "be/internal/service"
+import "github.com/gin-gonic/gin"
 
 type IssuerHandler struct {
-	issuerService service.IIssuerService
 }
 
+func (h *IssuerHandler) IssueClaim(c *gin.Context) {
+
+}

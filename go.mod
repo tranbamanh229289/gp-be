@@ -13,10 +13,11 @@ require (
 	github.com/google/wire v0.7.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/hashicorp/golang-lru/v2 v2.0.7
-	github.com/iden3/go-iden3-core v1.0.2
+	github.com/iden3/go-iden3-auth/v2 v2.7.8
+	github.com/iden3/go-iden3-core/v2 v2.4.0
 	github.com/iden3/go-iden3-crypto v0.0.17
-	github.com/iden3/go-merkletree-sql v1.0.2
 	github.com/iden3/go-merkletree-sql/v2 v2.0.6
+	github.com/iden3/iden3comm/v2 v2.12.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
 	github.com/rabbitmq/amqp091-go v1.10.0
@@ -33,7 +34,6 @@ require (
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProjectZKM/Ziren/crates/go-runtime/zkvm_runtime v0.0.0-20251106012722-c7be33e82a11 // indirect
-	github.com/StackExchange/wmi v1.2.1 // indirect
 	github.com/agnivade/levenshtein v1.2.1 // indirect
 	github.com/bits-and-blooms/bitset v1.24.3 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
@@ -41,6 +41,7 @@ require (
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
+	github.com/confluentinc/confluent-kafka-go/v2 v2.12.0 // indirect
 	github.com/consensys/gnark-crypto v0.19.2 // indirect
 	github.com/crate-crypto/go-eth-kzg v1.4.0 // indirect
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
@@ -71,8 +72,6 @@ require (
 	github.com/iden3/contracts-abi/state/go/abi v1.1.0 // indirect
 	github.com/iden3/driver-did-iden3 v0.0.17 // indirect
 	github.com/iden3/go-circuits/v2 v2.4.3 // indirect
-	github.com/iden3/go-iden3-auth/v2 v2.7.6 // indirect
-	github.com/iden3/go-iden3-core/v2 v2.4.0 // indirect
 	github.com/iden3/go-jwz/v2 v2.2.5 // indirect
 	github.com/iden3/go-rapidsnark/prover v0.0.15 // indirect
 	github.com/iden3/go-rapidsnark/types v0.0.3 // indirect
@@ -80,7 +79,6 @@ require (
 	github.com/iden3/go-rapidsnark/witness/v2 v2.0.0 // indirect
 	github.com/iden3/go-rapidsnark/witness/wazero v0.0.0-20230524142950-0986cf057d4e // indirect
 	github.com/iden3/go-schema-processor/v2 v2.6.6 // indirect
-	github.com/iden3/iden3comm/v2 v2.12.0 // indirect
 	github.com/iden3/jose-primitives v0.0.5 // indirect
 	github.com/iden3/merkletree-proof v1.0.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -95,17 +93,16 @@ require (
 	github.com/klauspost/cpuid/v2 v2.3.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
-	github.com/lestrrat-go/dsig v1.0.0 // indirect
-	github.com/lestrrat-go/dsig-secp256k1 v1.0.0 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.1 // indirect
-	github.com/lestrrat-go/jwx/v3 v3.0.12 // indirect
+	github.com/lestrrat-go/jwx/v3 v3.0.10 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
+	github.com/mozillazg/go-unidecode v0.2.0 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect

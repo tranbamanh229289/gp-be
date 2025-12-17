@@ -2,7 +2,6 @@ package logger
 
 import (
 	"be/config"
-	"be/pkg/fluent"
 	"fmt"
 	"os"
 
@@ -14,29 +13,28 @@ type ZapLogger struct {
 	logger *zap.Logger
 }
 
-
-func NewLogger(cfg *config.Config, fluent *fluent.Fluent) (*ZapLogger, error) {
+func NewLogger(cfg *config.Config) (*ZapLogger, error) {
 	var level, err = zapcore.ParseLevel(cfg.Zap.Level)
 	if err != nil {
 		return nil, fmt.Errorf("invalid log level %w", cfg.Zap.Level)
 	}
 
 	encoderConfig := zapcore.EncoderConfig{
-		TimeKey: "timestamp",
-		LevelKey: "level",
-		NameKey: "logger",
-		CallerKey: "caller",
-		FunctionKey: "function",
-		MessageKey: "msg",
-		StacktraceKey: "stacktrace",
-		LineEnding: zapcore.DefaultLineEnding,
-		EncodeLevel: zapcore.LowercaseLevelEncoder,
-		EncodeTime: zapcore.ISO8601TimeEncoder,
+		TimeKey:        "timestamp",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		FunctionKey:    "function",
+		MessageKey:     "msg",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller: zapcore.ShortCallerEncoder,
+		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	var cores []zapcore.Core;
+	var cores []zapcore.Core
 
 	//Console cores
 	consoleSyncer := zapcore.AddSync(os.Stdout)
@@ -44,15 +42,15 @@ func NewLogger(cfg *config.Config, fluent *fluent.Fluent) (*ZapLogger, error) {
 	consoleCore := zapcore.NewCore(consoleEncoder, consoleSyncer, level)
 	cores = append(cores, consoleCore)
 
-	// //Fluent cores
-	if fluent != nil {
-			fluentEncoder := zapcore.NewJSONEncoder(encoderConfig)
-			fluentCore := zapcore.NewCore(fluentEncoder, fluent, level)
-			cores = append(cores, fluentCore)
-	}
+	// // //Fluent cores
+	// if fluent != nil {
+	// 		fluentEncoder := zapcore.NewJSONEncoder(encoderConfig)
+	// 		fluentCore := zapcore.NewCore(fluentEncoder, fluent, level)
+	// 		cores = append(cores, fluentCore)
+	// }
 
 	logger := zap.New(
-		zapcore.NewTee(cores...), 
+		zapcore.NewTee(cores...),
 		zap.AddCaller(),
 		zap.AddCallerSkip(0),
 		zap.AddStacktrace(zapcore.ErrorLevel),

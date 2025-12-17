@@ -4,7 +4,7 @@ import (
 	"be/internal/service"
 	"be/internal/shared/constant"
 	response "be/internal/shared/helper"
-	"be/internal/transport/http/dtos"
+	"be/internal/transport/http/dto"
 	"be/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -38,7 +38,7 @@ func (h *AuthJWTHandler) GetProfile(c *gin.Context) {
 
 func (h *AuthJWTHandler) UpdateProfile(c *gin.Context) {
 	id := c.Param("id")
-	var userRequest dtos.UserRequest
+	var userRequest dto.UserRequest
 	if err := c.ShouldBindJSON(userRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)
 	}
@@ -52,7 +52,7 @@ func (h *AuthJWTHandler) UpdateProfile(c *gin.Context) {
 }
 
 func (h *AuthJWTHandler) Register(c *gin.Context) {
-	var registerRequest dtos.RegisterRequest
+	var registerRequest dto.RegisterRequest
 	if err := c.ShouldBindJSON(registerRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)
 	}
@@ -61,14 +61,14 @@ func (h *AuthJWTHandler) Register(c *gin.Context) {
 	if err != nil {
 		response.RespondError(c, err)
 	}
-	response.RespondSuccess(c, dtos.TokenResponse{
+	response.RespondSuccess(c, dto.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
 }
 
 func (h *AuthJWTHandler) Login(c *gin.Context) {
-	var loginRequest dtos.LoginRequest
+	var loginRequest dto.LoginRequest
 	if err := c.ShouldBindJSON(loginRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)
 	}
@@ -77,7 +77,7 @@ func (h *AuthJWTHandler) Login(c *gin.Context) {
 	if err != nil {
 		response.RespondError(c, err)
 	}
-	response.RespondSuccess(c, dtos.TokenResponse{
+	response.RespondSuccess(c, dto.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
@@ -92,7 +92,7 @@ func (h *AuthJWTHandler) RefreshToken(c *gin.Context) {
 	if err != nil {
 		response.RespondError(c, err)
 	}
-	response.RespondSuccess(c, dtos.TokenResponse{
+	response.RespondSuccess(c, dto.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})

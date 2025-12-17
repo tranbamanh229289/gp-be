@@ -1,0 +1,205 @@
+version: "3.9"
+
+x-app-base: &x-base
+    env_file:
+        - .env.dev
+    restart: unless-stopped
+    networks:
+        - be-net
+
+services:
+    postgres:
+        <<: *x-base
+        image: postgres:16
+        container_name: postgres-container
+        environment:
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - POSTGRES_DB=${POSTGRES_DB}
+        ports:
+            - "${POSTGRES_HOST_PORT}:${POSTGRES_CONTAINER_PORT}"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        restart: unless-stopped
+
+    # mongodb:
+    #     <<: *x-base
+    #     image: mongo:6.0
+    #     container_name: mongodb-container
+    #     environment:
+    #         - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+    #         - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    #     ports:
+    #         - "${MONGO_HOST_PORT}:${MONGO_CONTAINER_PORT}"
+    #     volumes:
+    #         - mongodb_data:/data/db
+    #     restart: unless-stopped
+
+    redis:
+        <<: *x-base
+        image: redis:alpine
+        container_name: redis-container
+        ports:
+            - "${REDIS_HOST_PORT}:${REDIS_CONTAINER_PORT}"
+        volumes:
+            - redis_data:/data
+        restart: unless-stopped
+
+    # rabbitmq:
+    #     <<: *x-base
+    #     image: rabbitmq:3.12-management
+    #     environment:
+    #         - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+    #         - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    #     ports:
+    #         - "${RABBITMQ_HOST_PORT}:${RABBITMQ_CONTAINER_PORT}"
+    #         - "${RABBITMQ_MANAGEMENT_HOST_PORT}:${RABBITMQ_MANAGEMENT_CONTAINER_PORT}"
+    #     volumes:
+    #         - rabbitmq_data:/var/lib/rabbitmq
+    #     restart: unless-stopped
+
+    kafka-1:
+        <<: *x-base
+        image: apache/kafka:4.1.0
+        container_name: kafka-kraft-1
+        hostname: ${KAFKA1_HOST_NAME}
+        ports:
+            - "${KAFKA1_HOST_PORT}:${KAFKA1_CONTAINER_PORT}"
+        volumes:
+            - kafka1_data:/var/lib/kafka/data
+
+        environment:
+            KAFKA_NODE_ID: ${KAFKA1_NODE_ID}
+            KAFKA_PROCESS_ROLES: ${KAFKA1_PROCESS_ROLES}
+            KAFKA_LISTENERS: ${KAFKA1_LISTENERS}
+            KAFKA_ADVERTISED_LISTENERS: ${KAFKA1_ADVERTISED_LISTENERS}
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA1_LISTENER_SECURITY_PROTOCOL_MAP}
+            KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA1_CONTROLLER_LISTENER_NAMES}
+            KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA1_CONTROLLER_QUORUM_VOTERS}
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA1_OFFSETS_TOPIC_REPLICATION_FACTOR}
+            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA1_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+            KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA1_TRANSACTION_STATE_LOG_MIN_ISR}
+            KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA1_GROUP_INIT_REBALANCE_DELAY_MS}
+            KAFKA_NUM_PARTITIONS: ${KAFKA1_NUM_PARTITIONS}
+    # kafka-2:
+    #     <<: *x-base
+    #     image: apache/kafka:4.1.0
+    #     container_name: kafka-kraft-2
+    #     hostname: ${KAFKA2_HOST_NAME}
+    #     ports:
+    #         - "${KAFKA2_HOST_PORT}:${KAFKA2_CONTAINER_PORT}"
+    #     volumes:
+    #         - kafka2_data:/var/lib/kafka/data
+
+    #     environment:
+    #         KAFKA_NODE_ID: ${KAFKA2_NODE_ID}
+    #         KAFKA_PROCESS_ROLES: ${KAFKA2_PROCESS_ROLES}
+    #         KAFKA_LISTENERS: ${KAFKA2_LISTENERS}
+    #         KAFKA_ADVERTISED_LISTENERS: ${KAFKA2_ADVERTISED_LISTENERS}
+    #         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA2_LISTENER_SECURITY_PROTOCOL_MAP}
+    #         KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA2_CONTROLLER_LISTENER_NAMES}
+    #         KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA2_CONTROLLER_QUORUM_VOTERS}
+    #         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA2_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA2_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA2_TRANSACTION_STATE_LOG_MIN_ISR}
+    #         KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA2_GROUP_INIT_REBALANCE_DELAY_MS}
+    #         KAFKA_NUM_PARTITIONS: ${KAFKA2_NUM_PARTITIONS}
+
+    # kafka-3:
+    #     <<: *x-base
+    #     image: apache/kafka:4.1.0
+    #     container_name: kafka-kraft-3
+    #     hostname: ${KAFKA3_HOST_NAME}
+    #     ports:
+    #         - "${KAFKA3_HOST_PORT}:${KAFKA3_CONTAINER_PORT}"
+    #     volumes:
+    #         - kafka3_data:/var/lib/kafka/data
+    #     environment:
+    #         KAFKA_NODE_ID: ${KAFKA3_NODE_ID}
+    #         KAFKA_PROCESS_ROLES: ${KAFKA3_PROCESS_ROLES}
+    #         KAFKA_LISTENERS: ${KAFKA3_LISTENERS}
+    #         KAFKA_ADVERTISED_LISTENERS: ${KAFKA3_ADVERTISED_LISTENERS}
+    #         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA3_LISTENER_SECURITY_PROTOCOL_MAP}
+    #         KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA3_CONTROLLER_LISTENER_NAMES}
+    #         KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA3_CONTROLLER_QUORUM_VOTERS}
+    #         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA3_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA3_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA3_TRANSACTION_STATE_LOG_MIN_ISR}
+    #         KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA3_GROUP_INIT_REBALANCE_DELAY_MS}
+    #         KAFKA_NUM_PARTITIONS: ${KAFKA3_NUM_PARTITIONS}
+    kafka-ui:
+        <<: *x-base
+        image: provectuslabs/kafka-ui:latest
+        container_name: kafka-ui
+        ports:
+            - "${KAFKA_UI_HOST_PORT}:${KAFKA_UI_CONTAINER_PORT}"
+        environment:
+            DYNAMIC_CONFIG_ENABLED: "true"
+            KAFKA_CLUSTERS_0_NAME: local
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT}
+            # KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT},${KAFKA2_HOST_NAME}:${KAFKA2_CONTAINER_PORT},${KAFKA3_HOST_NAME}:${KAFKA3_CONTAINER_PORT}
+        depends_on:
+            - kafka-1
+            # - kafka-2
+            # - kafka-3
+    # elasticsearch:
+    #     <<: *x-base
+    #     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.4
+    #     container_name: elastic-container
+    #     environment:
+    #         - discovery.type=single-node
+    #         - xpack.security.enabled=false
+    #         - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    #         - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    #     volumes:
+    #         - elastic_data:/usr/share/elasticsearch/data
+    #     ports:
+    #         - "${ELASTIC_PORT}:9200"
+    # fluentd:
+    #     <<: *x-base
+    #     build:
+    #         context: ./pkg/fluent
+    #         dockerfile: Dockerfile
+    #     image: fluent/fluentd:v1.16-1
+    #     container_name: fluentd-container
+    #     ports:
+    #         - "${FLUENTD_HOST_PORT}:${FLUENTD_CONTAINER_PORT}"
+    #         - "${FLUENTD_HOST_PORT}:${FLUENTD_CONTAINER_PORT}/udp"
+    #     volumes:
+    #         - ./pkg/fluent/fluent.conf:/fluentd/etc/fluent.conf
+    #         - ./pkg/fluent/logs:/fluentd/log
+    #     depends_on:
+    #         - elasticsearch
+    # kibana:
+    #     <<: *x-base
+    #     image: docker.elastic.co/kibana/kibana:8.10.4
+    #     container_name: kibana-container
+    #     environment:
+    #         - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    #         - ELASTICSEARCH_SERVICEACCOUNTTOKEN=${KIBANA_SERVICE_TOKEN}
+    #         - ELASTICSEARCH_SSL_VERIFICATIONMODE=none
+    #     ports:
+    #         - "${KIBANA_HOST_PORT}:${KIBANA_HOST_PORT}"
+    #     depends_on:
+    #         - elasticsearch
+
+volumes:
+    postgres_data:
+        driver: local
+    mongodb_data:
+        driver: local
+    redis_data:
+        driver: local
+    elastic_data:
+        driver: local
+    rabbitmq_data:
+        driver: local
+    kafka1_data:
+        driver: local
+    kafka2_data:
+        driver: local
+    kafka3_data:
+        driver: local
+networks:
+    be-net:
+        driver: bridge
