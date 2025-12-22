@@ -39,14 +39,15 @@ type ZapConfig struct {
 }
 
 type PostgresConfig struct {
-	Driver         string
-	Host           string
-	Port           int
-	User           string
-	Password       string
-	Name           string
-	SSLMode        string
-	MaxConnections int
+	Driver             string
+	Host               string
+	Port               int
+	User               string
+	Password           string
+	Name               string
+	SSLMode            string
+	MaxConnections     int
+	MaxIdleConnections int
 }
 
 type MongoConfig struct {
@@ -126,18 +127,38 @@ type BlockchainConfig struct {
 	StateContract string
 }
 
+type PinataConfig struct {
+	APIKey       string
+	APISecretKey string
+	JWTKey       string
+	Endpoint     string
+	BaseURL      string
+}
 type CircuitConfig struct {
-	MTLevel                                int
-	MTLevelOnChain                         int
-	MTLevelClaim                           int
-	ProvingKeyPath                         string
-	VerifyingKeyPath                       string
-	StateTransitionWasmPath                string
-	AuthV3WasmPath                         string
-	CredentialAtomicQueryV3WasmPath        string
-	CredentialAtomicQueryV3OnChainWasmPath string
+	MTLevel        int
+	MTLevelOnChain int
+	MTLevelClaim   int
+
+	StateTransitionWasmPath         string
+	StateTransitionProvingKeyPath   string
+	StateTransitionVerifyingKeyPath string
+
+	AuthV3WasmPath         string
+	AuthV3ProvingKeyPath   string
+	AuthV3VerifyingKeyPath string
+
+	CredentialAtomicQueryV3WasmPath         string
+	CredentialAtomicQueryV3ProvingKeyPath   string
+	CredentialAtomicQueryV3VerifyingKeyPath string
+
+	CredentialAtomicQueryV3OnChainWasmPath         string
+	CredentialAtomicQueryV3OnChainProvingKeyPath   string
+	CredentialAtomicQueryV3OnChainVerifyingKeyPath string
 }
 
+type Iden3Config struct {
+	VerifierPrivateKey string
+}
 type CronConfig struct {
 }
 
@@ -156,7 +177,9 @@ type Config struct {
 	Fluent        FluentConfig
 	Cron          CronConfig
 	Blockchain    BlockchainConfig
+	IPFS          PinataConfig
 	Circuit       CircuitConfig
+	Iden3         Iden3Config
 }
 
 func NewConfig() (*Config, error) {
@@ -196,14 +219,15 @@ func NewConfig() (*Config, error) {
 			KeyFile:  viper.GetString("tls.key_file"),
 		},
 		Postgres: PostgresConfig{
-			Host:           viper.GetString("postgres.host"),
-			Port:           viper.GetInt("postgres.port"),
-			User:           viper.GetString("postgres.user"),
-			Password:       viper.GetString("postgres.password"),
-			Name:           viper.GetString("postgres.name"),
-			Driver:         viper.GetString("postgres.driver"),
-			SSLMode:        viper.GetString("postgres.sslmode"),
-			MaxConnections: viper.GetInt("postgres.max_connections"),
+			Host:               viper.GetString("postgres.host"),
+			Port:               viper.GetInt("postgres.port"),
+			User:               viper.GetString("postgres.user"),
+			Password:           viper.GetString("postgres.password"),
+			Name:               viper.GetString("postgres.name"),
+			Driver:             viper.GetString("postgres.driver"),
+			SSLMode:            viper.GetString("postgres.sslmode"),
+			MaxConnections:     viper.GetInt("postgres.max_connections"),
+			MaxIdleConnections: viper.GetInt("postgres.max_idle_connections"),
 		},
 		Mongo: MongoConfig{
 			URI:         viper.GetString("mongo.uri"),
@@ -280,26 +304,41 @@ func NewConfig() (*Config, error) {
 			Resolver:      viper.GetString("blockchain.polygon.amoy.resolver"),
 			StateContract: viper.GetString("blockchain.polygon.amoy.contract.state"),
 		},
+		IPFS: PinataConfig{
+			APIKey:       viper.GetString("ipfs.pinata.api_key"),
+			APISecretKey: viper.GetString("ipfs.pinata.api_secret_key"),
+			JWTKey:       viper.GetString("ipfs.pinata.jwt_key"),
+			BaseURL:      viper.GetString("ipfs.pinama.base_url"),
+		},
 		Circuit: CircuitConfig{
-			MTLevel:                                viper.GetInt("circuit.mt_level"),
-			MTLevelOnChain:                         viper.GetInt("circuit.mt_level_onchain"),
-			MTLevelClaim:                           viper.GetInt("circuit.mt_level_claim"),
-			ProvingKeyPath:                         viper.GetString("circuit.proving_key_path"),
-			VerifyingKeyPath:                       viper.GetString("circuit.verifying_key_path"),
-			StateTransitionWasmPath:                viper.GetString("circuit.state_transition_wasm_path"),
-			AuthV3WasmPath:                         viper.GetString("circuit.auth_v3_wasm_path"),
-			CredentialAtomicQueryV3WasmPath:        viper.GetString("circuit.credential_atomic_query_v3_wasm_path"),
-			CredentialAtomicQueryV3OnChainWasmPath: viper.GetString("circuit.credential_atomic_query_v3_on_chain_wasm_path"),
+			MTLevel:                                        viper.GetInt("circuit.mt_level"),
+			MTLevelOnChain:                                 viper.GetInt("circuit.mt_level_onchain"),
+			MTLevelClaim:                                   viper.GetInt("circuit.mt_level_claim"),
+			StateTransitionWasmPath:                        viper.GetString("circuit.state_transition.wasm_path"),
+			StateTransitionProvingKeyPath:                  viper.GetString("circuit.state_transition.proving_key_path"),
+			StateTransitionVerifyingKeyPath:                viper.GetString("circuit.state_transition.verifying_key_path"),
+			AuthV3WasmPath:                                 viper.GetString("circuit.auth_v3.wasm_path"),
+			AuthV3ProvingKeyPath:                           viper.GetString("circuit.auth_v3.proving_key_path"),
+			AuthV3VerifyingKeyPath:                         viper.GetString("circuit.auth_v3.verifying_key_path"),
+			CredentialAtomicQueryV3WasmPath:                viper.GetString("circuit.credential_atomic_query_v3.wasm_path"),
+			CredentialAtomicQueryV3ProvingKeyPath:          viper.GetString("circuit.credential_atomic_query_v3.proving_key_path"),
+			CredentialAtomicQueryV3VerifyingKeyPath:        viper.GetString("circuit.credential_atomic_query_v3.verifying_key_path"),
+			CredentialAtomicQueryV3OnChainWasmPath:         viper.GetString("circuit.credential_atomic_query_v3_on_chain.wasm_path"),
+			CredentialAtomicQueryV3OnChainProvingKeyPath:   viper.GetString("circuit.credential_atomic_query_v3_on_chain.proving_key_path"),
+			CredentialAtomicQueryV3OnChainVerifyingKeyPath: viper.GetString("circuit.credential_atomic_query_v3_on_chain.verifying_key_path"),
+		},
+		Iden3: Iden3Config{
+			VerifierPrivateKey: viper.GetString("iden3.verifier.privateKey"),
 		},
 	}
 	return config, nil
 }
 
-func GetServerAddress(config *Config) string {
-	return fmt.Sprintf("%s:%s", config.Server.Host, config.Server.Port)
+func (config *Config) GetBaseURL() string {
+	return fmt.Sprintf("%s:%d", config.Server.Host, config.Server.Port)
 }
 
-func GetPostgresDSN(config *Config) string {
+func (config *Config) GetPostgresDSN() string {
 	host := config.Postgres.Host
 	port := config.Postgres.Port
 	user := config.Postgres.User
@@ -310,7 +349,7 @@ func GetPostgresDSN(config *Config) string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, strconv.Itoa(port), user, password, dbName, sslmode)
 }
 
-func GetRabbitMQDSN(config *Config) string {
+func (config *Config) GetRabbitMQDSN() string {
 	host := config.RabbitMQ.Host
 	port := config.RabbitMQ.Port
 	username := config.RabbitMQ.UserName
@@ -320,6 +359,6 @@ func GetRabbitMQDSN(config *Config) string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%d/%s", username, password, host, port, vhost)
 }
 
-func GetElasticsearchAddress(config *Config) []string {
+func (config *Config) GetElasticsearchAddress() []string {
 	return []string{fmt.Sprintf("http://%s:%s", config.Elasticsearch.Host, strconv.Itoa(config.Elasticsearch.Port))}
 }

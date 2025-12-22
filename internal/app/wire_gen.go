@@ -42,22 +42,21 @@ func InitializeApplication() (App, error) {
 	iUserRepository := repository.NewUserRepository(postgresDB, zapLogger)
 	iAuthJWTService := service.NewAuthJWTService(configConfig, zapLogger, redisCache, iUserRepository)
 	authJWTHandler := handler.NewAuthJWTHandler(iAuthJWTService, zapLogger)
-	iAuthZkService := service.NewAuthZkService(configConfig, zapLogger)
-	authZkHandler := handler.NewAuthZkHandler(iAuthZkService, zapLogger)
-	iIssuerService := service.NewIssuerService(configConfig)
-	issuerHandler := handler.NewIssuerHandler(iIssuerService)
-	iHolderService := service.NewHolderService(configConfig)
-	holderHandler := handler.NewHolderHandler(iHolderService)
-	iVerifierService := service.NewVerifierService(configConfig)
-	verifierHandler := handler.NewVerifierHandler(iVerifierService)
+	iIdentityRepository := repository.NewIdentityRepository(postgresDB)
+	imtRepository := repository.NewMerkletreeRepository(configConfig, postgresDB)
+	iAuthZkService, err := service.NewAuthZkService(configConfig, zapLogger, iIdentityRepository, imtRepository)
+	if err != nil {
+		return App{}, err
+	}
+	authZkHandler := handler.NewAuthZkHandler(zapLogger, iAuthZkService)
 	iCitizenIdentityRepository := repository.NewCitizenIdentityRepository(postgresDB, zapLogger)
 	iAcademicDegreeRepository := repository.NewAcademicDegreeRepository(postgresDB, zapLogger)
 	iHealthInsuranceRepository := repository.NewHealthInsuranceRepository(postgresDB, zapLogger)
 	iDriverLicenseRepository := repository.NewDriverLicenseRepository(postgresDB, zapLogger)
 	iPassportRepository := repository.NewPassportRepository(postgresDB, zapLogger)
-	iCredentialService := service.NewCredentialService(configConfig, iCitizenIdentityRepository, iAcademicDegreeRepository, iHealthInsuranceRepository, iDriverLicenseRepository, iPassportRepository)
-	credentialHandler := handler.NewCredentialHandler(iCredentialService)
-	routerRouter := router.NewRouter(authJWTHandler, authZkHandler, issuerHandler, holderHandler, verifierHandler, credentialHandler)
+	iDocumentService := service.NewDocumentService(configConfig, iCitizenIdentityRepository, iAcademicDegreeRepository, iHealthInsuranceRepository, iDriverLicenseRepository, iPassportRepository)
+	documentHandler := handler.NewDocumentHandler(iDocumentService)
+	routerRouter := router.NewRouter(authJWTHandler, authZkHandler, documentHandler)
 	middlewareMiddleware := middleware.NewMiddleware(configConfig, zapLogger)
 	server := NewServer(configConfig, zapLogger)
 	app := App{
@@ -91,13 +90,13 @@ var cacheSet = wire.NewSet(redis.NewCache)
 var etherSet = wire.NewSet(ether.NewEther)
 
 // Handler Set
-var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewIssuerHandler, handler.NewHolderHandler, handler.NewVerifierHandler, handler.NewCredentialHandler)
+var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewDocumentHandler)
 
 // Service Set
-var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewIssuerService, service.NewHolderService, service.NewVerifierService, service.NewCredentialService)
+var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewCredentialService, service.NewDocumentService, service.NewProofService, service.NewSchemaService)
 
 // Repository Set
-var repositorySet = wire.NewSet(repository.NewUserRepository, repository.NewBlockchainRepository, repository.NewCitizenIdentityRepository, repository.NewAcademicDegreeRepository, repository.NewDriverLicenseRepository, repository.NewHealthInsuranceRepository, repository.NewPassportRepository)
+var repositorySet = wire.NewSet(repository.NewAcademicDegreeRepository, repository.NewBlockchainRepository, repository.NewCitizenIdentityRepository, repository.NewCredentialRepository, repository.NewDriverLicenseRepository, repository.NewHealthInsuranceRepository, repository.NewIdentityRepository, repository.NewMerkletreeRepository, repository.NewPassportRepository, repository.NewProofRepository, repository.NewSchemaRepository, repository.NewStateTransitionRepository, repository.NewUserRepository)
 
 // Router Set
 var routerSet = wire.NewSet(router.NewRouter)

@@ -12,7 +12,7 @@ type DocumentHandler struct {
 	documentService service.IDocumentService
 }
 
-func NewCredentialHandler(cs service.IDocumentService) *DocumentHandler {
+func NewDocumentHandler(cs service.IDocumentService) *DocumentHandler {
 	return &DocumentHandler{
 		documentService: cs,
 	}

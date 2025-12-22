@@ -36,31 +36,34 @@ var etherSet = wire.NewSet(ether.NewEther)
 var handlerSet = wire.NewSet(
 	handler.NewAuthJWTHandler,
 	handler.NewAuthZkHandler,
-	handler.NewIssuerHandler,
-	handler.NewHolderHandler,
-	handler.NewVerifierHandler,
-	handler.NewCredentialHandler,
+	handler.NewDocumentHandler,
 )
 
 // Service Set
 var serviceSet = wire.NewSet(
 	service.NewAuthJWTService,
 	service.NewAuthZkService,
-	service.NewIssuerService,
-	service.NewHolderService,
-	service.NewVerifierService,
 	service.NewCredentialService,
+	service.NewDocumentService,
+	service.NewProofService,
+	service.NewSchemaService,
 )
 
 // Repository Set
 var repositorySet = wire.NewSet(
-	repository.NewUserRepository,
+	repository.NewAcademicDegreeRepository,
 	repository.NewBlockchainRepository,
 	repository.NewCitizenIdentityRepository,
-	repository.NewAcademicDegreeRepository,
+	repository.NewCredentialRepository,
 	repository.NewDriverLicenseRepository,
 	repository.NewHealthInsuranceRepository,
+	repository.NewIdentityRepository,
+	repository.NewMerkletreeRepository,
 	repository.NewPassportRepository,
+	repository.NewProofRepository,
+	repository.NewSchemaRepository,
+	repository.NewStateTransitionRepository,
+	repository.NewUserRepository,
 )
 
 // Router Set
@@ -78,7 +81,6 @@ func InitializeApplication() (App, error) {
 		logSet,
 		dbSet,
 		cacheSet,
-		// queueSet,
 		repositorySet,
 		serviceSet,
 		handlerSet,

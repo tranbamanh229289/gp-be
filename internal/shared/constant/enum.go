@@ -17,18 +17,71 @@ const (
 
 // Blockchain
 
-// Credential
-type CredentialType string
-
+// Identity
 const (
-	CitizenIdentityType CredentialType = "citizen_identity"
-	AcademicDegreeType  CredentialType = "academic_degree"
-	HealthInsuranceType CredentialType = "health_insurance"
-	DriverLicenseType   CredentialType = "driver_license"
-	PassportType        CredentialType = "passport"
+	IdentityHolderRole   = "holder"
+	IdentityVerifierRole = "verifier"
+	IdentityIssuerRole   = "issuer"
+)
+
+// Credential
+const (
+	CitizenIdentityType = "citizen_identity"
+	AcademicDegreeType  = "academic_degree"
+	HealthInsuranceType = "health_insurance"
+	DriverLicenseType   = "driver_license"
+	PassportType        = "passport"
 )
 
 const (
-	ActiveStatus = "active"
-	RevokeStatus = "revoke"
+	MaleGender   = "male"
+	FemaleGender = "female"
+)
+
+const (
+	BachelorDegreeType           = "bachelor"
+	MasterDegreeType             = "master"
+	PhDDegreeType                = "phd"
+	AssociateProfessorDegreeType = "associate_professor"
+	FullProfessorDegreeType      = "full_professor"
+)
+
+const (
+	ExcellentClassification = "excellent"
+	VeryGoodClassification  = "very_good"
+	GoodClassification      = "good"
+	AverageClassification   = "average"
+	PassClassification      = "pass"
+)
+
+const (
+	DocumentActiveStatus  = "active"
+	DocumentRevokeStatus  = "revoke"
+	DocumentExpiredStatus = "expired"
+)
+
+const (
+	CredentialRequestPendingStatus  = "pending"
+	CredentialRequestApprovedStatus = "approved"
+	CredentialRequestRejectedStatus = "rejected"
+)
+
+// proof
+const (
+	ProofPendingStatus   = "pending"
+	ProofCompletedStatus = "completed"
+	ProofFailedStatus    = "failed"
+	ProofExpiredStatus   = "expired"
+	ProofCancelledStatus = "cancelled"
+)
+
+const (
+	SigProofType = "sig"
+	MTPProofType = "mtp"
+)
+
+// schema
+const (
+	SchemaActiveStatus = "active"
+	SchemaRevokeStatus = "revoked"
 )

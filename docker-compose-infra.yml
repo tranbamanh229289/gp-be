@@ -58,29 +58,29 @@ services:
     #         - rabbitmq_data:/var/lib/rabbitmq
     #     restart: unless-stopped
 
-    kafka-1:
-        <<: *x-base
-        image: apache/kafka:4.1.0
-        container_name: kafka-kraft-1
-        hostname: ${KAFKA1_HOST_NAME}
-        ports:
-            - "${KAFKA1_HOST_PORT}:${KAFKA1_CONTAINER_PORT}"
-        volumes:
-            - kafka1_data:/var/lib/kafka/data
+    # kafka-1:
+    #     <<: *x-base
+    #     image: apache/kafka:4.1.0
+    #     container_name: kafka-kraft-1
+    #     hostname: ${KAFKA1_HOST_NAME}
+    #     ports:
+    #         - "${KAFKA1_HOST_PORT}:${KAFKA1_CONTAINER_PORT}"
+    #     volumes:
+    #         - kafka1_data:/var/lib/kafka/data
 
-        environment:
-            KAFKA_NODE_ID: ${KAFKA1_NODE_ID}
-            KAFKA_PROCESS_ROLES: ${KAFKA1_PROCESS_ROLES}
-            KAFKA_LISTENERS: ${KAFKA1_LISTENERS}
-            KAFKA_ADVERTISED_LISTENERS: ${KAFKA1_ADVERTISED_LISTENERS}
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA1_LISTENER_SECURITY_PROTOCOL_MAP}
-            KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA1_CONTROLLER_LISTENER_NAMES}
-            KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA1_CONTROLLER_QUORUM_VOTERS}
-            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA1_OFFSETS_TOPIC_REPLICATION_FACTOR}
-            KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA1_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
-            KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA1_TRANSACTION_STATE_LOG_MIN_ISR}
-            KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA1_GROUP_INIT_REBALANCE_DELAY_MS}
-            KAFKA_NUM_PARTITIONS: ${KAFKA1_NUM_PARTITIONS}
+    #     environment:
+    #         KAFKA_NODE_ID: ${KAFKA1_NODE_ID}
+    #         KAFKA_PROCESS_ROLES: ${KAFKA1_PROCESS_ROLES}
+    #         KAFKA_LISTENERS: ${KAFKA1_LISTENERS}
+    #         KAFKA_ADVERTISED_LISTENERS: ${KAFKA1_ADVERTISED_LISTENERS}
+    #         KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA1_LISTENER_SECURITY_PROTOCOL_MAP}
+    #         KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA1_CONTROLLER_LISTENER_NAMES}
+    #         KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA1_CONTROLLER_QUORUM_VOTERS}
+    #         KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA1_OFFSETS_TOPIC_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${KAFKA1_TRANSACTION_STATE_LOG_REPLICATION_FACTOR}
+    #         KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA1_TRANSACTION_STATE_LOG_MIN_ISR}
+    #         KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA1_GROUP_INIT_REBALANCE_DELAY_MS}
+    #         KAFKA_NUM_PARTITIONS: ${KAFKA1_NUM_PARTITIONS}
     # kafka-2:
     #     <<: *x-base
     #     image: apache/kafka:4.1.0
@@ -127,21 +127,21 @@ services:
     #         KAFKA_TRANSACTION_STATE_LOG_MIN_IRS: ${KAFKA3_TRANSACTION_STATE_LOG_MIN_ISR}
     #         KAFKA_GROUP_INIT_REBALANCE_DELAY_MS: ${KAFKA3_GROUP_INIT_REBALANCE_DELAY_MS}
     #         KAFKA_NUM_PARTITIONS: ${KAFKA3_NUM_PARTITIONS}
-    kafka-ui:
-        <<: *x-base
-        image: provectuslabs/kafka-ui:latest
-        container_name: kafka-ui
-        ports:
-            - "${KAFKA_UI_HOST_PORT}:${KAFKA_UI_CONTAINER_PORT}"
-        environment:
-            DYNAMIC_CONFIG_ENABLED: "true"
-            KAFKA_CLUSTERS_0_NAME: local
-            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT}
-            # KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT},${KAFKA2_HOST_NAME}:${KAFKA2_CONTAINER_PORT},${KAFKA3_HOST_NAME}:${KAFKA3_CONTAINER_PORT}
-        depends_on:
-            - kafka-1
-            # - kafka-2
-            # - kafka-3
+    # kafka-ui:
+    #     <<: *x-base
+    #     image: provectuslabs/kafka-ui:latest
+    #     container_name: kafka-ui
+    #     ports:
+    #         - "${KAFKA_UI_HOST_PORT}:${KAFKA_UI_CONTAINER_PORT}"
+    #     environment:
+    #         DYNAMIC_CONFIG_ENABLED: "true"
+    #         KAFKA_CLUSTERS_0_NAME: local
+    #         KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT}
+    #         # KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA1_HOST_NAME}:${KAFKA1_CONTAINER_PORT},${KAFKA2_HOST_NAME}:${KAFKA2_CONTAINER_PORT},${KAFKA3_HOST_NAME}:${KAFKA3_CONTAINER_PORT}
+    #     depends_on:
+    #         - kafka-1
+    #         - kafka-2
+    #         - kafka-3
     # elasticsearch:
     #     <<: *x-base
     #     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.4

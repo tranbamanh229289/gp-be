@@ -5,7 +5,6 @@ import (
 )
 
 type ProofRequestCreatedRequestDto struct {
-	CircuitType       string
 	VerifierID        string
 	SchemaID          string
 	Query             map[string]interface{}

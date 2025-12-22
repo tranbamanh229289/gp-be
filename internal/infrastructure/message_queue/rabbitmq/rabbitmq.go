@@ -16,7 +16,7 @@ type RabbitQueue struct {
 
 func NewQueue(cfg *config.Config, logger *logger.ZapLogger) (*RabbitQueue, error) {
 	// connect
-	dsn := config.GetRabbitMQDSN(cfg)
+	dsn := cfg.GetRabbitMQDSN()
 	conn, err := amqp091.Dial(dsn)
 
 	if err != nil {

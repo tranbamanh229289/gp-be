@@ -21,7 +21,7 @@ func NewPassportRepository(db *postgres.PostgresDB, logger *logger.ZapLogger) do
 
 func (r *PassportRepository) FindPassportByPublicId(ctx context.Context, publicId string) (*document.Passport, error) {
 	var entity document.Passport
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -29,7 +29,7 @@ func (r *PassportRepository) FindPassportByPublicId(ctx context.Context, publicI
 
 func (r *PassportRepository) FindPassportByPassportNumber(ctx context.Context, passportNumber string) (*document.Passport, error) {
 	var entity document.Passport
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("passport_number = ?", passportNumber).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("passport_number = ?", passportNumber).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -58,7 +58,7 @@ func (r *PassportRepository) SavePassport(ctx context.Context, entity *document.
 }
 
 func (r *PassportRepository) UpdatePassport(ctx context.Context, entity *document.Passport, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().Model(entity).Updates(changes).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

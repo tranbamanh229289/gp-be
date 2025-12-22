@@ -26,6 +26,7 @@ postgres:
     driver: "postgres"
     sslmode: "disable"
     max_connections: 20
+    max_idle_connections: 20
 
 mongo:
     uri: "mongodb://localhost:27017"
@@ -106,9 +107,31 @@ circuit:
     mt_level: 40
     mt_level_onchain: 32
     mt_level_claim: 32
-    proving_key_path: ""
-    verifying_key_path: ""
-    state_transition_wasm_path: ""
-    auth_v3_wasm_path: ""
-    credential_atomic_query_v3_wasm_path: ""
-    credential_atomic_query_v3_on_chain_wasm_path: ""
+    authv3:
+        wasm_path: "./circuits/authV3/circuit.wasm"
+        proving_key_path: "./circuit/authV3/circuit_final.zkey"
+        verifying_key_path: "./circuit/authV3/verifying_key.json"
+    state_transition:
+        wasm_path: "./circuits/stateTransition/circuit.wasm"
+        proving_key_path: "./circuit/stateTransition/circuit_final.zkey"
+        verifying_key_path: "./circuit/stateTransition/verifying_key.json"
+    credential_atomic_query_v3_wasm_path:
+        wasm_path: "./circuits/credentialAtomicQueryV3/circuit.wasm"
+        proving_key_path: "./circuits/credentialAtomicQueryV3/circuit_final.zkey"
+        verifying_key_path: "./circuits/credentialAtomicQueryV3/verifying_key.json"
+    credential_atomic_query_v3_on_chain_wasm_path:
+        wasm_path: "./circuits/credentialAtomicQueryV3OnChain/circuit.wasm"
+        proving_key_path: "./circuits/credentialAtomicQueryV3OnChain/circuit_final.zkey"
+        verifying_key_path: "./circuits/credentialAtomicQueryV3OnChain/verifying_key.json"
+
+ipfs:
+    pinata:
+        api_key: ""
+        api_secret_key: ""
+        jwt_key: ""
+        endpoint: "https://api.pinata.cloud/pinning"
+        base_url: "https://example.com/schemas/"
+
+iden3:
+    verifier:
+        private_key: ""

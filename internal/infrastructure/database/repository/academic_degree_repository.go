@@ -22,7 +22,7 @@ func NewAcademicDegreeRepository(db *postgres.PostgresDB, logger *logger.ZapLogg
 
 func (r *AcademicDegreeRepository) FindAcademicDegreeByPublicId(ctx context.Context, publicId string) (*document.AcademicDegree, error) {
 	var entity credential.AcademicDegree
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -30,7 +30,7 @@ func (r *AcademicDegreeRepository) FindAcademicDegreeByPublicId(ctx context.Cont
 
 func (r *AcademicDegreeRepository) FindAcademicDegreeByDegreeNumber(ctx context.Context, degreeNumber string) (*document.AcademicDegree, error) {
 	var entity credential.AcademicDegree
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("degree_number = ?", degreeNumber).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("degree_number = ?", degreeNumber).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -59,7 +59,7 @@ func (r *AcademicDegreeRepository) SaveAcademicDegree(ctx context.Context, entit
 }
 
 func (r *AcademicDegreeRepository) UpdateAcademicDegree(ctx context.Context, entity *credential.AcademicDegree, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().Model(entity).Updates(changes).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

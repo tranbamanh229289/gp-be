@@ -16,7 +16,7 @@ type ElasticsearchDB struct {
 
 func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*ElasticsearchDB, error) {
 	client, err := elasticsearch.NewClient(elasticsearch.Config{
-		Addresses: config.GetElasticsearchAddress(cfg),
+		Addresses: cfg.GetElasticsearchAddress(),
 		Username:  cfg.Elasticsearch.Username,
 		Password:  cfg.Elasticsearch.Password,
 	})
@@ -37,7 +37,7 @@ func NewDB(cfg *config.Config, logger *logger.ZapLogger) (*ElasticsearchDB, erro
 	defer res.Body.Close()
 
 	logger.Info("Successfully connected to Elasticsearch",
-		zap.Strings("addresses", config.GetElasticsearchAddress(cfg)))
+		zap.Strings("addresses", cfg.GetElasticsearchAddress()))
 
 	return &ElasticsearchDB{client: client, logger: logger}, nil
 }

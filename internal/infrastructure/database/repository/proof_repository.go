@@ -18,7 +18,7 @@ func NewProofRepository(db *postgres.PostgresDB) proof.IProofRepository {
 
 func (r *ProofRepository) GetProofRequestByPublicId(ctx context.Context, publicId string) (*proof.ProofRequest, error) {
 	var entity proof.ProofRequest
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -26,7 +26,7 @@ func (r *ProofRepository) GetProofRequestByPublicId(ctx context.Context, publicI
 
 func (r *ProofRepository) GetProofRequestByRequestId(ctx context.Context, requestId string) (*proof.ProofRequest, error) {
 	var entity proof.ProofRequest
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("request_id = ?", requestId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("request_id = ?", requestId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil

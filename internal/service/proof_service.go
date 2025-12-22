@@ -2,8 +2,9 @@ package service
 
 import (
 	"be/config"
+	"be/internal/domain/credential"
 	"be/internal/domain/proof"
-	"be/internal/infrastructure/database/repository"
+	"be/internal/domain/schema"
 	"be/internal/shared/constant"
 	"be/internal/transport/http/dto"
 	"context"
@@ -14,16 +15,16 @@ type IProofService interface {
 
 type ProofService struct {
 	config       *config.Config
-	identityRepo *repository.IdentityRepository
-	schemaRepo   *repository.CredentialRepository
-	proofRepo    *repository.ProofRepository
+	identityRepo credential.IIdentityRepository
+	schemaRepo   schema.ISchemaRepository
+	proofRepo    proof.IProofRepository
 }
 
 func NewProofService(
 	config *config.Config,
-	identityRepo *repository.IdentityRepository,
-	schemaRepo *repository.CredentialRepository,
-	proofRepo *repository.ProofRepository,
+	identityRepo credential.IIdentityRepository,
+	schemaRepo schema.ISchemaRepository,
+	proofRepo proof.IProofRepository,
 ) IProofService {
 	return &ProofService{
 		config:       config,
@@ -42,7 +43,7 @@ func (s *ProofService) CreateProofRequest(
 		return nil, err
 	}
 
-	schema, err := s.schemaRepo.FindCredentialByPublicId(ctx, request.SchemaID)
+	schema, err := s.schemaRepo.FindSchemaByPublicId(ctx, request.SchemaID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +51,9 @@ func (s *ProofService) CreateProofRequest(
 	proofCreated, err := s.proofRepo.CreateProofRequest(ctx, &proof.ProofRequest{
 		VerifierID:        verifier.ID,
 		SchemaID:          schema.ID,
-		CircuitType:       request.CircuitType,
 		AllowedIssuersDID: request.AllowedIssuersDID,
 		Challenge:         request.Challenge,
-		Status:            "Pending",
+		Status:            constant.ProofPendingStatus,
 	})
 	proofCreated.CallbackURL = ""
 	proofCreated.QRCodeData = ""
@@ -65,7 +65,6 @@ func (s *ProofService) CreateProofRequest(
 		PublicID:          proofCreated.PublicID.String(),
 		VerifierID:        verifier.PublicID.String(),
 		SchemaID:          schema.PublicID.String(),
-		CircuitType:       proofCreated.CircuitType,
 		AllowedIssuersDID: proofCreated.AllowedIssuersDID,
 		Challenge:         proofCreated.Challenge,
 		Status:            proofCreated.Status,

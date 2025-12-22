@@ -21,7 +21,7 @@ func NewHealthInsuranceRepository(db *postgres.PostgresDB, logger *logger.ZapLog
 
 func (r *HealthInsuranceRepository) FindHealthInsuranceByPublicId(ctx context.Context, publicId string) (*document.HealthInsurance, error) {
 	var entity document.HealthInsurance
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -29,7 +29,7 @@ func (r *HealthInsuranceRepository) FindHealthInsuranceByPublicId(ctx context.Co
 
 func (r *HealthInsuranceRepository) FindHealthInsuranceByInsuranceNumber(ctx context.Context, insuranceNumber string) (*document.HealthInsurance, error) {
 	var entity document.HealthInsurance
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("insurance_number = ?", insuranceNumber).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("insurance_number = ?", insuranceNumber).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -58,7 +58,7 @@ func (r *HealthInsuranceRepository) SaveHealthInsurance(ctx context.Context, ent
 }
 
 func (r *HealthInsuranceRepository) UpdateHealthInsurance(ctx context.Context, entity *document.HealthInsurance, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().Model(entity).Updates(changes).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

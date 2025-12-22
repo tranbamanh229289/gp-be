@@ -18,7 +18,7 @@ func NewCredentialRepository(db *postgres.PostgresDB) credential.ICredentialRepo
 
 func (r *CredentialRepository) FindCredentialByPublicId(ctx context.Context, publicId string) (*credential.Credential, error) {
 	var credential *credential.Credential
-	if err := r.db.GetGormDB().WithContext(ctx).First(credential).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(credential).Error; err != nil {
 		return nil, err
 	}
 	return credential, nil

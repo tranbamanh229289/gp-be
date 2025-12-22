@@ -21,7 +21,7 @@ func NewCitizenIdentityRepository(db *postgres.PostgresDB, logger *logger.ZapLog
 
 func (r *CitizenIdentityRepository) FindCitizenIdentityByPublicId(ctx context.Context, publicId string) (*document.CitizenIdentity, error) {
 	var entity document.CitizenIdentity
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -29,7 +29,7 @@ func (r *CitizenIdentityRepository) FindCitizenIdentityByPublicId(ctx context.Co
 
 func (r *CitizenIdentityRepository) FindCitizenIdentityByIdNumber(ctx context.Context, idNumber string) (*document.CitizenIdentity, error) {
 	var entity document.CitizenIdentity
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("id_number = ?", idNumber).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("id_number = ?", idNumber).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -37,7 +37,7 @@ func (r *CitizenIdentityRepository) FindCitizenIdentityByIdNumber(ctx context.Co
 
 func (r *CitizenIdentityRepository) FindCitizenIdentityByHolderDID(ctx context.Context, holderDID string) (*document.CitizenIdentity, error) {
 	var entity document.CitizenIdentity
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("holder_did = ?", holderDID).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Where("holder_did = ?", holderDID).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil

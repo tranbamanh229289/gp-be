@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 
 	"github.com/iden3/go-merkletree-sql/v2"
 )
@@ -22,7 +23,16 @@ func (d *DID) Scan(value interface{}) error {
 		*d = ""
 		return nil
 	}
-	return json.Unmarshal(value.([]byte), d)
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	}
+	return json.Unmarshal(bytes, d)
 }
 
 func (d DID) Value() (driver.Value, error) {
@@ -36,7 +46,16 @@ func (j *JSONB) Scan(value interface{}) error {
 		*j = make(map[string]interface{})
 		return nil
 	}
-	return json.Unmarshal(value.([]byte), j)
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return fmt.Errorf("failed to unmarshal JSONB value: %v", value)
+	}
+	return json.Unmarshal(bytes, j)
 }
 
 func (j JSONB) Value() (driver.Value, error) {

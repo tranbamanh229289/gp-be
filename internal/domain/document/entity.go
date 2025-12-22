@@ -75,7 +75,7 @@ type DriverLicense struct {
 	Class          string           `gorm:"type:varchar(20)" json:"class" validate:"required"`
 	Point          int              `gorm:"type:smallint" json:"point" validate:"gte=0,lte=12"`
 	PointResetDate time.Time        `gorm:"type:date" json:"point_reset_date" validate:"omitempty"`
-	Status         string           `gorm:"type:varchar(30);default:'Active'" json:"status" validate:"required,oneof=Active Expired Revoked Suspended"`
+	Status         string           `gorm:"type:varchar(30);default:'Active'" json:"status" validate:"required,oneof=Active Expired Revoked"`
 	IssueDate      time.Time        `gorm:"type:date;not null" json:"issue_date" validate:"required"`
 	ExpiryDate     time.Time        `gorm:"type:date;not null" json:"expiry_date" validate:"required"`
 	IssuerDID      string           `gorm:"type:varchar(255)" json:"issuer_did" validate:"omitempty,startswith=did:"`
