@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS mt_nodes;
+DROP TABLE IF EXISTS mt_roots;

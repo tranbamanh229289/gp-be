@@ -59,7 +59,7 @@ func NewLogger(cfg *config.Config) (*ZapLogger, error) {
 	logger = logger.With(
 		zap.String("app_name", cfg.App.Name),
 		zap.String("version", cfg.App.Version),
-		zap.String("environment", cfg.App.Environment),
+		zap.String("env", cfg.App.Env),
 	)
 	return &ZapLogger{logger}, nil
 }

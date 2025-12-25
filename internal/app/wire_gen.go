@@ -44,7 +44,7 @@ func InitializeApplication() (App, error) {
 	authJWTHandler := handler.NewAuthJWTHandler(iAuthJWTService, zapLogger)
 	iIdentityRepository := repository.NewIdentityRepository(postgresDB)
 	imtRepository := repository.NewMerkletreeRepository(configConfig, postgresDB)
-	iAuthZkService, err := service.NewAuthZkService(configConfig, zapLogger, iIdentityRepository, imtRepository)
+	iAuthZkService, err := service.NewAuthZkService(configConfig, zapLogger, redisCache, iIdentityRepository, imtRepository)
 	if err != nil {
 		return App{}, err
 	}

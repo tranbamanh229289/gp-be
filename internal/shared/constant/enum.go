@@ -36,6 +36,7 @@ const (
 const (
 	MaleGender   = "male"
 	FemaleGender = "female"
+	OtherGender  = "other"
 )
 
 const (
@@ -61,9 +62,9 @@ const (
 )
 
 const (
-	CredentialRequestPendingStatus  = "pending"
-	CredentialRequestApprovedStatus = "approved"
-	CredentialRequestRejectedStatus = "rejected"
+	PassportOrdinaryType   = "ordinary"
+	PassportDiplomaticType = "diplomatic"
+	PassportOfficialType   = "official"
 )
 
 // proof
@@ -75,9 +76,23 @@ const (
 	ProofCancelledStatus = "cancelled"
 )
 
+// verifiable credential
 const (
-	SigProofType = "sig"
-	MTPProofType = "mtp"
+	ProofBjjSignature2021Type  = "sig"
+	Iden3SparseMerkleTreeProof = "mtp"
+)
+const (
+	VerifiableCredentialPendingStatus = "pending"
+	VerifiableCredentialIssuedStatus  = "issued"
+	VerifiableCredentialRevokedStatus = "revoked"
+	VerifiableCredentialExpiredStatus = "expired"
+)
+
+// credential request
+const (
+	CredentialRequestPendingStatus  = "pending"
+	CredentialRequestApprovedStatus = "approved"
+	CredentialRequestRejectedStatus = "rejected"
 )
 
 // schema

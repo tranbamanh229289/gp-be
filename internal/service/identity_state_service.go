@@ -12,26 +12,32 @@ import (
 )
 
 type IdentityState struct {
-	PublicKey       *babyjub.PublicKey
-	ClaimsTree      *merkletree.MerkleTree
-	ClaimsMTID      uint64
-	RevocationsTree *merkletree.MerkleTree
-	RevMTID         uint64
-	RootsTree       *merkletree.MerkleTree
-	RootsMTID       uint64
+	PublicKey  *babyjub.PublicKey
+	DID        *w3c.DID
+	ClaimsTree *merkletree.MerkleTree
+	ClaimsMTID uint64
+	RevTree    *merkletree.MerkleTree
+	RevMTID    uint64
+	RootsTree  *merkletree.MerkleTree
+	RootsMTID  uint64
 }
 
 func (state *IdentityState) GetStateValue() (*merkletree.Hash, error) {
-	stateValue, err := merkletree.HashElems(state.ClaimsTree.Root().BigInt(), state.RevocationsTree.Root().BigInt(), state.RootsTree.Root().BigInt())
+	return merkletree.HashElems(state.ClaimsTree.Root().BigInt(), state.RevTree.Root().BigInt(), state.RootsTree.Root().BigInt())
 
-	return stateValue, err
 }
 
-func (state *IdentityState) GetDID() (w3c.DID, error) {
-	stateValue, _ := state.GetStateValue()
-	typ, _ := core.BuildDIDType(core.DIDMethodPolygonID, core.Polygon, core.Mumbai)
-	did, _ := core.NewDIDFromIdenState(typ, stateValue.BigInt())
-	return *did, nil
+func (state *IdentityState) GetDID() *w3c.DID {
+	return state.DID
+}
+
+func (state *IdentityState) GetID() *core.ID {
+	did, _ := core.IDFromDID(*state.DID)
+	return &did
+}
+
+func (state *IdentityState) CalculateState(claimsTree, revTree, rootsTree *merkletree.MerkleTree) (*merkletree.Hash, error) {
+	return merkletree.HashElems(claimsTree.Root().BigInt(), revTree.Root().BigInt(), rootsTree.Root().BigInt())
 }
 
 func (state *IdentityState) AddClaim(ctx context.Context, claim *core.Claim) error {
@@ -43,26 +49,25 @@ func (state *IdentityState) AddClaim(ctx context.Context, claim *core.Claim) err
 	if err != nil {
 		return fmt.Errorf("failed to add claim: %w", err)
 	}
-
+	claimsRoot := state.ClaimsTree.Root()
+	err = state.RootsTree.Add(ctx, claimsRoot.BigInt(), big.NewInt(1))
 	return nil
 }
 
 func (state *IdentityState) RevokeClaim(ctx context.Context, claim *core.Claim) error {
 	revNonce := claim.GetRevocationNonce()
-	err := state.RevocationsTree.Add(ctx, new(big.Int).SetUint64(revNonce), big.NewInt(0))
+	err := state.RevTree.Add(ctx, new(big.Int).SetUint64(revNonce), big.NewInt(0))
 	if err != nil {
 		return fmt.Errorf("failed to add claim: %w", err)
 	}
-
 	return nil
 }
 
 func (state *IdentityState) GetAuthClaim() (*core.Claim, error) {
-	authSchemaHash, _ := core.NewSchemaHashFromHex("ca938857241db9451ea329256b9c06e5")
 	revNonce := uint64(1)
 
 	authClaim, err := core.NewClaim(
-		authSchemaHash,
+		core.AuthSchemaHash,
 		core.WithIndexDataInts(state.PublicKey.X, state.PublicKey.Y),
 		core.WithRevocationNonce(revNonce),
 	)
@@ -74,7 +79,7 @@ func (state *IdentityState) GetAuthClaim() (*core.Claim, error) {
 	return authClaim, nil
 }
 
-func (state *IdentityState) GetClaimsTreeProof(ctx context.Context, claim *core.Claim) (*merkletree.Proof, error) {
+func (state *IdentityState) GetIncMTProof(ctx context.Context, claim *core.Claim) (*merkletree.Proof, error) {
 	hi, _, err := claim.HiHv()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get key and value: %w", err)
@@ -88,25 +93,12 @@ func (state *IdentityState) GetClaimsTreeProof(ctx context.Context, claim *core.
 	return proof, nil
 }
 
-func (state *IdentityState) GetNonRevTreeProof(ctx context.Context, claim *core.Claim) (*merkletree.Proof, error) {
+func (state *IdentityState) GetNonRevMTProof(ctx context.Context, claim *core.Claim) (*merkletree.Proof, error) {
 	revNonce := claim.GetRevocationNonce()
-	proof, _, err := state.RevocationsTree.GenerateProof(ctx, new(big.Int).SetUint64(revNonce), state.RevocationsTree.Root())
+	proof, _, err := state.RevTree.GenerateProof(ctx, new(big.Int).SetUint64(revNonce), state.RevTree.Root())
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate non-rev proof: %w", err)
 	}
 
 	return proof, nil
 }
-
-// func (state *IdentityState) SignClaim(claim *core.Claim) *babyjub.Signature {
-// 	index, value := claim.RawSlots()
-// 	indexHash, _ := poseidon.Hash(core.ElemBytesToInts(index[:]))
-// 	valueHash, _ := poseidon.Hash(core.ElemBytesToInts(value[:]))
-// 	claimHash, _ := merkletree.HashElems(indexHash, valueHash)
-
-// 	return state.privateKey.SignPoseidon(claimHash.BigInt())
-// }
-
-// func (state *IdentityState) SignChallenge(challenge *big.Int) *babyjub.Signature {
-// 	return state.privateKey.SignPoseidon(challenge)
-// }

@@ -1,0 +1,21 @@
+CREATE TABLE verifiable_credentials (
+    id BIGSERIAL PRIMARY KEY,
+    public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    issuer_id BIGINT NOT NULL REFERENCES identities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    holder_id BIGINT NOT NULL REFERENCES identities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
+    schema_id BIGINT REFERENCES schemas(id) ON UPDATE CASCADE ON DELETE SET NULL,
+    claim_data JSONB,
+    claim_hi VARCHAR(255) CHECK (claim_hi IS NULL OR length(claim_hi) = 64),
+    claim_hv VARCHAR(255) CHECK (claim_hv IS NULL OR length(claim_hv) = 64),
+    claim_subject JSONB,
+    revocation_nonce BIGINT,
+    expiration_date DATE,
+    proof_type VARCHAR(100) CHECK (proof_type IN ('BjjSignature2021', 'Iden3SparseMerkleTreeProof') OR proof_type IS NULL),
+    issuer_state VARCHAR(255) CHECK (issuer_state IS NULL OR length(issuer_state) = 64),
+    signature_proof JSONB,
+    mtp_proof JSONB,
+    status VARCHAR(30) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'issued', 'revoked', 'expired')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMPTZ
+);

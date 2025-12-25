@@ -14,7 +14,7 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 )
 
-type IClaimService interface {
+type ICircuitService interface {
 	GenerateSignatureBasedInputs(
 		ctx context.Context,
 		requestID *big.Int,
@@ -52,19 +52,19 @@ type IClaimService interface {
 		authClaimSignature *babyjub.Signature,
 	) ([]byte, error)
 }
-type ClaimService struct {
+type circuitService struct {
 	config *config.Config
 	logger *logger.ZapLogger
 }
 
-func NewClaimService(config *config.Config, logger *logger.ZapLogger) *ClaimService {
-	return &ClaimService{
+func NewCircuitService(config *config.Config, logger *logger.ZapLogger) *circuitService {
+	return &circuitService{
 		config: config,
 		logger: logger,
 	}
 }
 
-func (s *ClaimService) GenerateSignatureBasedInputs(
+func (s *circuitService) GenerateSignatureBasedInputs(
 	ctx context.Context,
 	requestID *big.Int,
 	holderID *core.ID,
@@ -86,7 +86,7 @@ func (s *ClaimService) GenerateSignatureBasedInputs(
 	treeState := circuits.TreeState{
 		State:          currentState,
 		ClaimsRoot:     issuerState.ClaimsTree.Root(),
-		RevocationRoot: issuerState.RevocationsTree.Root(),
+		RevocationRoot: issuerState.RevTree.Root(),
 		RootOfRoots:    issuerState.RootsTree.Root(),
 	}
 
@@ -97,33 +97,25 @@ func (s *ClaimService) GenerateSignatureBasedInputs(
 	}
 
 	// 5. get auth claim proof
-	issuerAuthClaimProof, err := issuerState.GetClaimsTreeProof(ctx, authClaim)
+	issuerAuthClaimProof, err := issuerState.GetIncMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 6. get non-rev auth claim proof
-	issuerAuthClaimNonRevProof, err := issuerState.GetNonRevTreeProof(ctx, authClaim)
+	issuerAuthClaimNonRevProof, err := issuerState.GetNonRevMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 8. get non-rev claim proof
-	issuerClaimNonRevProof, err := issuerState.GetNonRevTreeProof(ctx, claim)
+	issuerClaimNonRevProof, err := issuerState.GetNonRevMTProof(ctx, claim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 9. get issuerID
-	did, err := issuerState.GetDID()
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-
-	issuerID, err := core.IDFromDID(did)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
+	issuerID := issuerState.GetID()
 
 	inputs := circuits.AtomicQueryV3Inputs{
 		RequestID:                requestID,
@@ -132,7 +124,7 @@ func (s *ClaimService) GenerateSignatureBasedInputs(
 		ClaimSubjectProfileNonce: big.NewInt(0),
 
 		Claim: circuits.ClaimWithSigAndMTPProof{
-			IssuerID: &issuerID,
+			IssuerID: issuerID,
 			Claim:    claim,
 			NonRevProof: circuits.MTProof{
 				Proof:     issuerClaimNonRevProof,
@@ -169,7 +161,7 @@ func (s *ClaimService) GenerateSignatureBasedInputs(
 	return inputs.InputsMarshal()
 }
 
-func (s *ClaimService) GenerateMTPBasedInputs(
+func (s *circuitService) GenerateMTPBasedInputs(
 	ctx context.Context,
 	requestID *big.Int,
 	holderID *core.ID,
@@ -189,32 +181,24 @@ func (s *ClaimService) GenerateMTPBasedInputs(
 	treeState := circuits.TreeState{
 		State:          currentState,
 		ClaimsRoot:     issuerState.ClaimsTree.Root(),
-		RevocationRoot: issuerState.RevocationsTree.Root(),
+		RevocationRoot: issuerState.RevTree.Root(),
 		RootOfRoots:    issuerState.RootsTree.Root(),
 	}
 
 	// 3. get claim proof
-	issuerClaimProof, err := issuerState.GetClaimsTreeProof(ctx, claim)
+	issuerClaimProof, err := issuerState.GetIncMTProof(ctx, claim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 4. get non-rev claim proof
-	issuerClaimNonRevProof, err := issuerState.GetNonRevTreeProof(ctx, claim)
+	issuerClaimNonRevProof, err := issuerState.GetNonRevMTProof(ctx, claim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 5. get issuer ID
-	did, err := issuerState.GetDID()
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	issuerID, err := core.IDFromDID(did)
-
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
+	issuerID := issuerState.GetID()
 
 	inputs := circuits.AtomicQueryV3Inputs{
 		RequestID:                requestID,
@@ -223,7 +207,7 @@ func (s *ClaimService) GenerateMTPBasedInputs(
 		ClaimSubjectProfileNonce: big.NewInt(0),
 
 		Claim: circuits.ClaimWithSigAndMTPProof{
-			IssuerID: &issuerID,
+			IssuerID: issuerID,
 			Claim:    claim,
 			NonRevProof: circuits.MTProof{
 				Proof:     issuerClaimNonRevProof,
@@ -250,10 +234,11 @@ func (s *ClaimService) GenerateMTPBasedInputs(
 	return inputs.InputsMarshal()
 }
 
-func (s *ClaimService) GenerateAuthV3Inputs(
+func (s *circuitService) GenerateAuthV3Inputs(
 	ctx context.Context,
-	userState *IdentityState,
+	gistRoot *merkletree.Hash,
 	gistTree *merkletree.MerkleTree,
+	userState *IdentityState,
 	challenge *big.Int,
 	challengeSignature *babyjub.Signature,
 ) ([]byte, error) {
@@ -272,13 +257,13 @@ func (s *ClaimService) GenerateAuthV3Inputs(
 	}
 
 	// 3. get auth claim proof
-	authClaimProof, err := userState.GetClaimsTreeProof(ctx, authClaim)
+	authClaimProof, err := userState.GetIncMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 4. get non-rev auth claim proof
-	authClaimNonRevProof, err := userState.GetNonRevTreeProof(ctx, authClaim)
+	authClaimNonRevProof, err := userState.GetNonRevMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
@@ -290,17 +275,10 @@ func (s *ClaimService) GenerateAuthV3Inputs(
 	}
 
 	// 7. user id
-	did, err := userState.GetDID()
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	userID, err := core.IDFromDID(did)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
+	userID := userState.GetID()
 
 	inputs := circuits.AuthV3Inputs{
-		GenesisID:          &userID,
+		GenesisID:          userID,
 		ProfileNonce:       big.NewInt(0),
 		AuthClaim:          authClaim,
 		AuthClaimIncMtp:    authClaimProof,
@@ -308,7 +286,7 @@ func (s *ClaimService) GenerateAuthV3Inputs(
 		TreeState: circuits.TreeState{
 			State:          userStateValue,
 			ClaimsRoot:     userState.ClaimsTree.Root(),
-			RevocationRoot: userState.RevocationsTree.Root(),
+			RevocationRoot: userState.RevTree.Root(),
 			RootOfRoots:    userState.RootsTree.Root(),
 		},
 		GISTProof: circuits.GISTProof{
@@ -322,7 +300,7 @@ func (s *ClaimService) GenerateAuthV3Inputs(
 	return inputs.InputsMarshal()
 }
 
-func (s *ClaimService) GenerateStateTransitionInputs(
+func (s *circuitService) GenerateStateTransitionInputs(
 	ctx context.Context,
 	oldState *IdentityState,
 	newState *IdentityState,
@@ -350,45 +328,38 @@ func (s *ClaimService) GenerateStateTransitionInputs(
 	}
 
 	// 4. get auth claim proof with old state
-	authClaimOldStateProof, err := oldState.GetClaimsTreeProof(ctx, authClaim)
+	authClaimOldStateProof, err := oldState.GetIncMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 5. get non-rev auth claim proof with old state
-	authClaimNonRevOldStateProof, err := oldState.GetNonRevTreeProof(ctx, authClaim)
+	authClaimNonRevOldStateProof, err := oldState.GetNonRevMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 6. get auth claim proof with new state
-	authClaimNewStateProof, err := oldState.GetClaimsTreeProof(ctx, authClaim)
+	authClaimNewStateProof, err := oldState.GetIncMTProof(ctx, authClaim)
 	if err != nil {
 		return nil, fmt.Errorf("%w", err)
 	}
 
 	// 8. get user id
-	did, err := oldState.GetDID()
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
-	userID, err := core.IDFromDID(did)
-	if err != nil {
-		return nil, fmt.Errorf("%w", err)
-	}
+	userID := oldState.GetID()
 
 	inputs := circuits.StateTransitionInputs{
-		ID: &userID,
+		ID: userID,
 		OldTreeState: circuits.TreeState{
 			State:          oldStateValue,
 			ClaimsRoot:     oldState.ClaimsTree.Root(),
-			RevocationRoot: oldState.RevocationsTree.Root(),
+			RevocationRoot: oldState.RevTree.Root(),
 			RootOfRoots:    oldState.RootsTree.Root(),
 		},
 		NewTreeState: circuits.TreeState{
 			State:          newStateValue,
 			ClaimsRoot:     newState.ClaimsTree.Root(),
-			RevocationRoot: newState.RevocationsTree.Root(),
+			RevocationRoot: newState.RevTree.Root(),
 			RootOfRoots:    newState.RootsTree.Root(),
 		},
 		IsOldStateGenesis:       isOldStateGenesis,

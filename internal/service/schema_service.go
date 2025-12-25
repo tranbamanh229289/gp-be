@@ -19,6 +19,8 @@ import (
 )
 
 type ISchemaService interface {
+	CreateSchema(ctx context.Context, request *dto.SchemaCreatedRequestDto) (*dto.SchemaResponseDto, error)
+	RemoveSchema(ctx context.Context, id string) error
 }
 type SchemaService struct {
 	config       *config.Config

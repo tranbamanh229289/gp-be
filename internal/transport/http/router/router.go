@@ -28,5 +28,5 @@ func (r *Router) SetupRoutes(engine *gin.Engine) {
 
 	SetupAuthJWTRouter(apiGroup, r.authJWTHandler)
 	SetupAuthZkRouter(apiGroup, r.authZkHandler)
-	SetupCredentialRouter(apiGroup, r.documentHandler)
+	SetupDocumentRouter(apiGroup, r.documentHandler)
 }

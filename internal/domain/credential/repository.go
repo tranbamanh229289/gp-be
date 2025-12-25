@@ -13,12 +13,12 @@ type IIdentityRepository interface {
 	UpdateCitizenIdentity(ctx context.Context, entity *Identity, changes map[string]interface{}) error
 }
 
-type ICredentialRepository interface {
-	FindCredentialByPublicId(ctx context.Context, publicId string) (*Credential, error)
-	FindAllCredential(ctx context.Context) ([]*Credential, error)
-	CreateCredential(ctx context.Context, entity *Credential) (*Credential, error)
-	SaveCredential(ctx context.Context, entity *Credential) (*Credential, error)
-	UpdateCredential(ctx context.Context, entity *Credential, changes map[string]interface{}) error
+type IVerifiableCredentialRepository interface {
+	FindCredentialByPublicId(ctx context.Context, publicId string) (*VerifiableCredential, error)
+	FindAllCredential(ctx context.Context) ([]*VerifiableCredential, error)
+	CreateCredential(ctx context.Context, entity *VerifiableCredential) (*VerifiableCredential, error)
+	SaveCredential(ctx context.Context, entity *VerifiableCredential) (*VerifiableCredential, error)
+	UpdateCredential(ctx context.Context, entity *VerifiableCredential, changes map[string]interface{}) error
 }
 
 type ICredentialRequestRepository interface {

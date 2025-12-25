@@ -5,20 +5,20 @@ import (
 )
 
 type IdentityCreatedRequestDto struct {
-	PublicKeyX string
-	PublicKeyY string
-	Name       string
-	Role       string
+	PublicKeyX string `json:"publicKeyX"`
+	PublicKeyY string `json:"publicKeyY"`
+	Name       string `json:"name"`
+	Role       string `json:"role"`
 }
 
 type IdentityResponseDto struct {
-	PublicID   string
-	PublicKeyX string
-	PublicKeyY string
-	Name       string
-	Role       string
-	DID        string
-	State      string
+	PublicID   string `json:"publicID"`
+	PublicKeyX string `json:"publicKeyX"`
+	PublicKeyY string `json:"publicKeyY"`
+	Name       string `json:"name"`
+	Role       string `json:"role"`
+	DID        string `json:"did"`
+	State      string `json:"state"`
 }
 
 func ToIdentityResponseDto(entity *credential.Identity) *IdentityResponseDto {

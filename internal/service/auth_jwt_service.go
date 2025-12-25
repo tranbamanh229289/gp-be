@@ -237,7 +237,7 @@ func (s *AuthJWTService) GetToken(claims *dto.Claims, tokenType constant.TokenTy
 
 	tokenRedisKey := string(tokenType) + "_" + claims.ID
 
-	if err := s.redis.Set(tokenRedisKey, tokenString, s.config.JWT.AccessTokenTTL); err != nil {
+	if err := s.redis.Set(context.Background(), tokenRedisKey, tokenString, s.config.JWT.AccessTokenTTL); err != nil {
 		return "", err
 	}
 
@@ -260,7 +260,7 @@ func (s *AuthJWTService) VerifyToken(tokenString string, tokenType constant.Toke
 	}
 
 	tokenRedisKey := string(tokenType) + "_" + claims.ID
-	tokenRedisValue, err := s.redis.Get(tokenRedisKey)
+	tokenRedisValue, err := s.redis.Get(context.Background(), tokenRedisKey).Result()
 	if err != nil {
 		return nil, err
 	}

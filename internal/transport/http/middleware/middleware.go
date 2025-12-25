@@ -17,8 +17,6 @@ func NewMiddleware(cfg *config.Config, logger *logger.ZapLogger) *Middleware {
 }
 
 func (m *Middleware) SetupGlobalMiddlewares(engine *gin.Engine) {
-	engine.Use(RecoveryMiddleware())
-	engine.Use(CORSMiddleware())
-	engine.Use(ErrorHandlingMiddleware())
-	// engine.Use(LogMiddleware(m.logger))
+	m.CORSMiddleware(engine)
+	m.LogMiddleware(engine)
 }

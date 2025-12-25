@@ -161,7 +161,6 @@ func normalize(s string) string {
 }
 
 func GetIdNumber(dateOfBirth time.Time, placeOfBirth, gender string) (string, error) {
-	// Validate
 	if gender != "male" && gender != "female" {
 		return "", fmt.Errorf("gender must be male or female")
 	}

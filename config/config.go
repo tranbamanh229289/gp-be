@@ -12,9 +12,10 @@ import (
 )
 
 type AppConfig struct {
-	Name        string
-	Version     string
-	Environment string
+	Name           string
+	Version        string
+	Env            string
+	AllowedOrigins string
 }
 type ServerConfig struct {
 	Host    string
@@ -139,21 +140,7 @@ type CircuitConfig struct {
 	MTLevelOnChain int
 	MTLevelClaim   int
 
-	StateTransitionWasmPath         string
-	StateTransitionProvingKeyPath   string
-	StateTransitionVerifyingKeyPath string
-
-	AuthV3WasmPath         string
-	AuthV3ProvingKeyPath   string
-	AuthV3VerifyingKeyPath string
-
-	CredentialAtomicQueryV3WasmPath         string
-	CredentialAtomicQueryV3ProvingKeyPath   string
-	CredentialAtomicQueryV3VerifyingKeyPath string
-
-	CredentialAtomicQueryV3OnChainWasmPath         string
-	CredentialAtomicQueryV3OnChainProvingKeyPath   string
-	CredentialAtomicQueryV3OnChainVerifyingKeyPath string
+	VerifyingKey string
 }
 
 type Iden3Config struct {
@@ -204,9 +191,10 @@ func NewConfig() (*Config, error) {
 
 	config := &Config{
 		App: AppConfig{
-			Name:        viper.GetString("app.name"),
-			Version:     viper.GetString("app.version"),
-			Environment: viper.GetString("app.environment"),
+			Name:           viper.GetString("app.name"),
+			Version:        viper.GetString("app.version"),
+			Env:            viper.GetString("app.env"),
+			AllowedOrigins: viper.GetString("app.allowed_origins"),
 		},
 		Server: ServerConfig{
 			Host:    viper.GetString("server.host"),
@@ -311,24 +299,13 @@ func NewConfig() (*Config, error) {
 			BaseURL:      viper.GetString("ipfs.pinama.base_url"),
 		},
 		Circuit: CircuitConfig{
-			MTLevel:                                        viper.GetInt("circuit.mt_level"),
-			MTLevelOnChain:                                 viper.GetInt("circuit.mt_level_onchain"),
-			MTLevelClaim:                                   viper.GetInt("circuit.mt_level_claim"),
-			StateTransitionWasmPath:                        viper.GetString("circuit.state_transition.wasm_path"),
-			StateTransitionProvingKeyPath:                  viper.GetString("circuit.state_transition.proving_key_path"),
-			StateTransitionVerifyingKeyPath:                viper.GetString("circuit.state_transition.verifying_key_path"),
-			AuthV3WasmPath:                                 viper.GetString("circuit.auth_v3.wasm_path"),
-			AuthV3ProvingKeyPath:                           viper.GetString("circuit.auth_v3.proving_key_path"),
-			AuthV3VerifyingKeyPath:                         viper.GetString("circuit.auth_v3.verifying_key_path"),
-			CredentialAtomicQueryV3WasmPath:                viper.GetString("circuit.credential_atomic_query_v3.wasm_path"),
-			CredentialAtomicQueryV3ProvingKeyPath:          viper.GetString("circuit.credential_atomic_query_v3.proving_key_path"),
-			CredentialAtomicQueryV3VerifyingKeyPath:        viper.GetString("circuit.credential_atomic_query_v3.verifying_key_path"),
-			CredentialAtomicQueryV3OnChainWasmPath:         viper.GetString("circuit.credential_atomic_query_v3_on_chain.wasm_path"),
-			CredentialAtomicQueryV3OnChainProvingKeyPath:   viper.GetString("circuit.credential_atomic_query_v3_on_chain.proving_key_path"),
-			CredentialAtomicQueryV3OnChainVerifyingKeyPath: viper.GetString("circuit.credential_atomic_query_v3_on_chain.verifying_key_path"),
+			MTLevel:        viper.GetInt("circuit.mt_level"),
+			MTLevelOnChain: viper.GetInt("circuit.mt_level_onchain"),
+			MTLevelClaim:   viper.GetInt("circuit.mt_level_claim"),
+			VerifyingKey:   viper.GetString("circuit.verifying_key"),
 		},
 		Iden3: Iden3Config{
-			VerifierPrivateKey: viper.GetString("iden3.verifier.privateKey"),
+			VerifierPrivateKey: viper.GetString("iden3.verifier.private_key"),
 		},
 	}
 	return config, nil

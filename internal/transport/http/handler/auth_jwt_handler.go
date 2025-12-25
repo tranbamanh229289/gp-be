@@ -53,7 +53,7 @@ func (h *AuthJWTHandler) UpdateProfile(c *gin.Context) {
 
 func (h *AuthJWTHandler) Register(c *gin.Context) {
 	var registerRequest dto.RegisterRequest
-	if err := c.ShouldBindJSON(registerRequest); err != nil {
+	if err := c.ShouldBindJSON(&registerRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)
 	}
 
@@ -69,7 +69,7 @@ func (h *AuthJWTHandler) Register(c *gin.Context) {
 
 func (h *AuthJWTHandler) Login(c *gin.Context) {
 	var loginRequest dto.LoginRequest
-	if err := c.ShouldBindJSON(loginRequest); err != nil {
+	if err := c.ShouldBindJSON(&loginRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)
 	}
 

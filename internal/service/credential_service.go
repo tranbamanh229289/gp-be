@@ -14,6 +14,8 @@ import (
 )
 
 type ICredentialService interface {
+	CreateCredentialRequest(ctx context.Context, request *dto.CredentialRequestCreatedRequestDto) (*dto.CredentialRequestResponseDto, error)
+	GetCredentialRequests(ctx context.Context) ([]*dto.CredentialRequestResponseDto, error)
 }
 type CredentialService struct {
 	config                *config.Config
@@ -92,7 +94,7 @@ func (r *CredentialService) GetCredentialRequests(ctx context.Context) ([]*dto.C
 	return credentialRequestResponseDto, nil
 }
 
-func (r *CredentialService) IssueCredential(ctx context.Context, requestID string) (*credential.Credential, error) {
+func (r *CredentialService) IssueCredential(ctx context.Context, requestID string) (*credential.VerifiableCredential, error) {
 	credentialRequest, err := r.credentialRequestRepo.FindCredentialRequestByPublicId(ctx, requestID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
