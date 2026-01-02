@@ -1,35 +1,50 @@
 package dto
 
 type SchemaBuilderDto struct {
-	IssuerID    string
-	Title       string
-	Type        string
-	Version     string
-	Description string
-
-	IsMerklized   bool
-	IsPublishIPFS bool
-	Fields        []SchemaFieldDto
+	IssuerDID   string               `json:"issuerDID"`
+	Title       string               `json:"title"`
+	Type        string               `json:"type"`
+	Version     string               `json:"version"`
+	Description string               `json:"description"`
+	IsMerklized bool                 `json:"isMerklized"`
+	Attributes  []SchemaAttributeDto `json:"attributes"`
 }
 
-type SchemaFieldDto struct {
-	Name        string
-	Title       string
-	Type        string
-	Description string
-	Required    bool
-	Slot        string
+type SchemaAttributeDto struct {
+	Name        string                 `json:"name"`
+	Title       string                 `json:"title"`
+	Type        string                 `json:"type"`
+	Description string                 `json:"description"`
+	Required    bool                   `json:"required"`
+	Slot        string                 `json:"slot"`
+	Format      string                 `json:"format,omitempty"`
+	Pattern     string                 `json:"pattern,omitempty"`
+	MinLength   *int                   `json:"minLength,omitempty"`
+	MaxLength   *int                   `json:"maxLength,omitempty"`
+	Minimum     *float64               `json:"minimum,omitempty"`
+	Maximum     *float64               `json:"maximum,omitempty"`
+	Enum        map[string]interface{} `json:"enum,omitempty"`
 }
 
-type SchemaCreatedRequestDto struct {
-	SchemaBuilderDto
+type ClaimDataDto struct {
+	SchemaHash        string                 `json:"schema_hash"`
+	Type              string                 `json:"type"`
+	IsMerklized       bool                   `json:"is_merklized"`
+	CredentialSubject map[string]interface{} `json:"credential_subject"`
+	SlotIndexMapping  map[string]string      `json:"slot_index_mapping,omitempty"`
 }
+
 type SchemaResponseDto struct {
-	PublicID  string
-	IssuerID  string
-	Type      string
-	Version   string
-	JSONCID   string
-	JSONLDCID string
-	Status    string
+	PublicID    string               `json:"id"`
+	IssuerDID   string               `json:"issuerDID"`
+	Hash        string               `json:"hash"`
+	Title       string               `json:"title"`
+	Type        string               `json:"type"`
+	Version     string               `json:"version"`
+	Status      string               `json:"status"`
+	Description string               `json:"description"`
+	IsMerklized bool                 `json:"isMerklized"`
+	SchemaURL   string               `json:"contextURL"`
+	ContextURL  string               `json:"schemaURL"`
+	Attributes  []SchemaAttributeDto `json:"attributes"`
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"be/config"
-	"be/internal/domain/credential"
 	"be/internal/domain/schema"
 	"be/internal/infrastructure/ipfs"
 	"be/internal/shared/constant"
@@ -15,31 +14,118 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-crypto/keccak256"
 	"gorm.io/gorm"
 )
 
 type ISchemaService interface {
-	CreateSchema(ctx context.Context, request *dto.SchemaCreatedRequestDto) (*dto.SchemaResponseDto, error)
+	GetSchemas(ctx context.Context) ([]*dto.SchemaResponseDto, error)
+	GetSchemaByPublicId(ctx context.Context, id string) (*dto.SchemaResponseDto, error)
+	CreateSchema(ctx context.Context, request *dto.SchemaBuilderDto) (*dto.SchemaResponseDto, error)
 	RemoveSchema(ctx context.Context, id string) error
 }
 type SchemaService struct {
-	config       *config.Config
-	ipfs         *ipfs.Pinata
-	identityRepo credential.IIdentityRepository
-	schemaRepo   schema.ISchemaRepository
+	config              *config.Config
+	ipfs                *ipfs.Pinata
+	identityRepo        schema.IIdentityRepository
+	schemaRepo          schema.ISchemaRepository
+	schemaAttributeRepo schema.ISchemaAttributeRepository
 }
 
-func NewSchemaService(config *config.Config, pinata *ipfs.Pinata, schemaRepo schema.ISchemaRepository, identityRepo credential.IIdentityRepository) ISchemaService {
+func NewSchemaService(
+	config *config.Config,
+	pinata *ipfs.Pinata,
+	identityRepo schema.IIdentityRepository,
+	schemaRepo schema.ISchemaRepository,
+) ISchemaService {
+
 	return &SchemaService{
 		config:       config,
 		ipfs:         pinata,
-		schemaRepo:   schemaRepo,
 		identityRepo: identityRepo,
+		schemaRepo:   schemaRepo,
 	}
 }
 
-func (s *SchemaService) CreateSchema(ctx context.Context, request *dto.SchemaCreatedRequestDto) (*dto.SchemaResponseDto, error) {
-	identity, err := s.identityRepo.FindIdentityByPublicId(ctx, request.IssuerID)
+func (s *SchemaService) GetSchemaByPublicId(ctx context.Context, id string) (*dto.SchemaResponseDto, error) {
+	schema, err := s.schemaRepo.FindSchemaByPublicId(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.SchemaNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+
+	var attributesDto []dto.SchemaAttributeDto
+	for _, item := range schema.SchemaAttributes {
+		attributesDto = append(attributesDto, dto.SchemaAttributeDto{
+			Name:        item.Name,
+			Title:       item.Title,
+			Type:        item.Type,
+			Description: item.Description,
+			Required:    item.Required,
+			Slot:        item.Slot,
+		})
+	}
+
+	return &dto.SchemaResponseDto{
+		PublicID:    schema.PublicID.String(),
+		IssuerDID:   schema.IssuerDID,
+		Hash:        schema.Hash,
+		Title:       schema.Title,
+		Type:        schema.Type,
+		Version:     schema.Version,
+		Description: schema.Description,
+		Status:      schema.Status,
+		IsMerklized: schema.IsMerklized,
+		SchemaURL:   schema.SchemaURL,
+		ContextURL:  schema.ContextURL,
+		Attributes:  attributesDto,
+	}, nil
+}
+
+func (s *SchemaService) GetSchemas(ctx context.Context) ([]*dto.SchemaResponseDto, error) {
+	schemas, err := s.schemaRepo.FindAllSchemas(ctx)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.SchemaNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+
+	var schemaDtos []*dto.SchemaResponseDto
+	for _, schema := range schemas {
+		var schemaAttributeDtos []dto.SchemaAttributeDto
+		for _, attribute := range schema.SchemaAttributes {
+			schemaAttributeDtos = append(schemaAttributeDtos, dto.SchemaAttributeDto{
+				Name:        attribute.Name,
+				Title:       attribute.Title,
+				Description: attribute.Title,
+				Required:    attribute.Required,
+				Slot:        attribute.Slot,
+			})
+		}
+		schemaDtos = append(schemaDtos, &dto.SchemaResponseDto{
+			PublicID:    schema.PublicID.String(),
+			IssuerDID:   schema.IssuerDID,
+			Hash:        schema.Hash,
+			Title:       schema.Title,
+			Description: schema.Description,
+			Type:        schema.Type,
+			Version:     schema.Version,
+			IsMerklized: schema.IsMerklized,
+			SchemaURL:   schema.SchemaURL,
+			ContextURL:  schema.ContextURL,
+			Status:      schema.Status,
+			Attributes:  schemaAttributeDtos,
+		})
+	}
+	return schemaDtos, err
+}
+
+func (s *SchemaService) CreateSchema(ctx context.Context, request *dto.SchemaBuilderDto) (*dto.SchemaResponseDto, error) {
+	identity, err := s.identityRepo.FindIdentityByDID(ctx, request.IssuerDID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.SchemaNotFound
@@ -54,41 +140,76 @@ func (s *SchemaService) CreateSchema(ctx context.Context, request *dto.SchemaCre
 	jsonSchema := s.generateJSONSchema(request)
 	jsonLdContext := s.generateJSONLDContext(request)
 
-	schema := &schema.Schema{
+	schemaEntity := &schema.Schema{
 		PublicID:      uuid.New(),
+		IssuerDID:     request.IssuerDID,
 		Type:          request.Type,
 		Version:       request.Version,
+		Title:         request.Title,
+		Description:   request.Description,
+		IsMerklized:   request.IsMerklized,
 		Status:        constant.SchemaActiveStatus,
 		JSONSchema:    jsonSchema,
 		JSONLDContext: jsonLdContext,
 	}
 
-	if request.IsPublishIPFS {
-		jsonSchemaBytes, _ := json.MarshalIndent(jsonSchema, "", "    ")
-		shemaFileName := strings.ToLower(request.Type) + ".json"
-		jsonLdContextBytes, _ := json.MarshalIndent(jsonLdContext, "", "    ")
-		ldContextFileName := strings.ToLower(request.Type) + ".jsonld"
-
-		jsonCID, _ := s.ipfs.Upload(shemaFileName, jsonSchemaBytes)
-		schema.JSONCID = jsonCID
-
-		jsonLdCID, _ := s.ipfs.Upload(ldContextFileName, jsonLdContextBytes)
-		schema.JSONLDCID = jsonLdCID
+	var attributes []*schema.SchemaAttribute
+	for _, item := range request.Attributes {
+		attributes = append(attributes, &schema.SchemaAttribute{
+			PublicID:    uuid.New(),
+			SchemaID:    schemaEntity.ID,
+			Name:        item.Name,
+			Title:       item.Title,
+			Type:        item.Type,
+			Required:    item.Required,
+			Description: item.Description,
+			Slot:        item.Slot,
+		})
 	}
 
-	schemaCreated, err := s.schemaRepo.CreateSchema(ctx, schema)
+	schemaURL, contextURL, err := s.uploadToIPFS(schemaEntity, jsonSchema, jsonLdContext, request.Type)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upload to IPFS: %w", err)
+	}
+	schemaEntity.SchemaURL = schemaURL
+	schemaEntity.ContextURL = contextURL
+
+	hash, err := s.getSchemaHash(contextURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get schema hash: %w", err)
+	}
+	schemaEntity.Hash = hash.BigInt().String()
+
+	schemaCreated, err := s.schemaRepo.CreateSchema(ctx, schemaEntity)
 	if err != nil {
 		return nil, &constant.SchemaNotFound
 	}
 
+	attributesCreated, err := s.schemaAttributeRepo.CreateSchemaAttributes(ctx, attributes)
+	if err != nil {
+		return nil, &constant.SchemaAttributeNotFound
+	}
+
+	var attributesDto []dto.SchemaAttributeDto
+	for _, item := range attributesCreated {
+		attributesDto = append(attributesDto, dto.SchemaAttributeDto{
+			Name:        item.Name,
+			Title:       item.Title,
+			Description: item.Description,
+			Required:    item.Required,
+			Slot:        item.Slot,
+		})
+	}
+
 	return &dto.SchemaResponseDto{
-		PublicID:  schemaCreated.PublicID.String(),
-		IssuerID:  identity.PublicID.String(),
-		Type:      schemaCreated.Type,
-		Version:   schemaCreated.Version,
-		JSONCID:   schema.JSONCID,
-		JSONLDCID: schema.JSONLDCID,
-		Status:    schema.Status,
+		PublicID:   schemaCreated.PublicID.String(),
+		SchemaURL:  schemaEntity.SchemaURL,
+		ContextURL: schemaEntity.ContextURL,
+		Status:     schemaEntity.Status,
+		IssuerDID:  identity.DID,
+		Type:       schemaCreated.Type,
+		Version:    schemaCreated.Version,
+		Attributes: attributesDto,
 	}, nil
 }
 
@@ -100,21 +221,56 @@ func (s *SchemaService) RemoveSchema(ctx context.Context, id string) error {
 		}
 		return &constant.InternalServer
 	}
-	s.ipfs.Remove(schema.JSONCID)
-	s.ipfs.Remove(schema.JSONLDCID)
+	if schema.SchemaURL != "" {
+		_ = s.ipfs.Remove(schema.SchemaURL)
+	}
+	if schema.ContextURL != "" {
+		s.ipfs.Remove(schema.ContextURL)
+	}
 
-	changes := map[string]interface{}{"status": constant.SchemaRevokeStatus, "revoked_at": time.Now()}
-	return s.schemaRepo.UpdateSchema(ctx, schema, changes)
+	changes := map[string]interface{}{"status": constant.SchemaRevokeStatus, "revoked_at": time.Now().UTC()}
+	if err := s.schemaAttributeRepo.UpdateAttributesBySchemaID(ctx, schema.ID, changes); err != nil {
+		return err
+	}
+
+	if err := s.schemaRepo.UpdateSchema(ctx, schema, changes); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *SchemaService) validate(request *dto.SchemaCreatedRequestDto) error {
-	if !request.IsMerklized && len(request.Fields) != 4 {
-		return fmt.Errorf("non merklized max 4 fields")
+func (s *SchemaService) validate(request *dto.SchemaBuilderDto) error {
+	if request.Type == "" {
+		return errors.New("type is required")
+	}
+	if request.Version == "" {
+		return errors.New("version is required")
+	}
+	if request.IssuerDID == "" {
+		return errors.New("issuer_did is required")
+	}
+
+	if !request.IsMerklized && len(request.Attributes) > 4 {
+		return errors.New("non-merklized schema supports maximum 4 attributes")
+	}
+
+	seen := make(map[string]bool)
+	for _, attr := range request.Attributes {
+
+		if attr.Name == "" {
+			return errors.New("attribute name is required")
+		}
+
+		if seen[attr.Name] {
+			return fmt.Errorf("duplicate attribute name: %s", attr.Name)
+		}
+		seen[attr.Name] = true
 	}
 	return nil
 }
 
-func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto) map[string]interface{} {
+func (s *SchemaService) generateJSONSchema(request *dto.SchemaBuilderDto) map[string]interface{} {
 	if request.Type == "" {
 		request.Type = "Credential"
 	}
@@ -122,14 +278,13 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 		request.Version = "1.0"
 	}
 
-	baseURL := s.config.IPFS.BaseURL
+	baseURL := strings.TrimSuffix(s.config.IPFS.GatewayURL, "/")
 	if baseURL == "" {
-		baseURL = "https://example.com/schemas/"
+		baseURL = "https://ipfs.io/ipfs"
 	}
 
-	URL := baseURL + strings.ToLower(request.Type)
-	jsonLdURL := URL + ".jsonld"
-	jsonSchemaURL := URL + ".json"
+	schemaURL := fmt.Sprintf("%s/%s.json", baseURL, strings.ToLower(request.Type))
+	contextURL := fmt.Sprintf("%s/%s.jsonld", baseURL, strings.ToLower(request.Type))
 
 	iden3Serialization := map[string]string{}
 	credSubProperties := map[string]interface{}{
@@ -142,30 +297,17 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 	}
 	credSubRequired := []string{"id"}
 
-	for _, field := range request.Fields {
-		credSubProperties[field.Name] = map[string]interface{}{
-			"type":        field.Type,
-			"title":       field.Title,
-			"description": field.Description,
+	for _, attr := range request.Attributes {
+		credSubProperties[attr.Name] = map[string]interface{}{
+			"type":        attr.Type,
+			"title":       attr.Title,
+			"description": attr.Description,
 		}
-		if field.Required {
-			credSubRequired = append(credSubRequired, field.Name)
+		if attr.Required {
+			credSubRequired = append(credSubRequired, attr.Name)
 		}
-		if field.Slot != "" {
-			slotKey := ""
-			switch field.Slot {
-			case "IndexDataSlotA":
-				slotKey = "slotIndexA"
-			case "IndexDataSlotB":
-				slotKey = "slotIndexB"
-			case "ValueDataSlotA":
-				slotKey = "slotValueA"
-			case "ValueDataSlotB":
-				slotKey = "slotValueB"
-			}
-			if slotKey != "" {
-				iden3Serialization[slotKey] = field.Name
-			}
+		if !request.IsMerklized && attr.Slot != "" {
+			iden3Serialization[attr.Slot] = attr.Name
 		}
 	}
 
@@ -173,8 +315,8 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 		"$schema": "https://json-schema.org/draft/2020-12/schema",
 		"$metadata": map[string]interface{}{
 			"uris": map[string]string{
-				"jsonLdContext": jsonLdURL,
-				"jsonSchema":    jsonSchemaURL,
+				"jsonLdContext": contextURL,
+				"jsonSchema":    schemaURL,
 			},
 			"version": request.Version,
 			"type":    request.Type,
@@ -187,12 +329,8 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 			"issuer", "type", "credentialSchema",
 		},
 		"properties": map[string]interface{}{
-			"@context": map[string]interface{}{
-				"type": []string{"string", "array", "object"},
-			},
-			"id": map[string]interface{}{
-				"type": "string",
-			},
+			"@context": map[string]interface{}{"type": []string{"string", "array", "object"}},
+			"id":       map[string]interface{}{"type": "string"},
 			"type": map[string]interface{}{
 				"type": []string{"string", "array"},
 				"items": map[string]interface{}{
@@ -200,15 +338,15 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 				},
 			},
 			"issuer": map[string]interface{}{
-				"type":   []string{"string", "object"},
-				"format": "uri",
+				"type":     []string{"string", "object"},
+				"required": []string{"id"},
+				"format":   "uri",
 				"properties": map[string]interface{}{
 					"id": map[string]interface{}{
 						"type":   "string",
 						"format": "uri",
 					},
 				},
-				"required": []string{"id"},
 			},
 			"issuanceDate": map[string]interface{}{
 				"type":   "string",
@@ -267,9 +405,10 @@ func (s *SchemaService) generateJSONSchema(request *dto.SchemaCreatedRequestDto)
 	return schema
 }
 
-func (s *SchemaService) generateJSONLDContext(request *dto.SchemaCreatedRequestDto) map[string]interface{} {
-	if request.Type == "" {
-		request.Type = "Credential"
+func (s *SchemaService) generateJSONLDContext(request *dto.SchemaBuilderDto) map[string]interface{} {
+	credType := request.Type
+	if credType == "" {
+		credType = "VerifiableCredential"
 	}
 
 	credUUID := uuid.New()
@@ -279,9 +418,17 @@ func (s *SchemaService) generateJSONLDContext(request *dto.SchemaCreatedRequestD
 	vocabURN := "urn:uuid:" + vocabUUID.String() + "#"
 
 	serializationParts := []string{}
-	fields := map[string]interface{}{}
 
-	for _, field := range request.Fields {
+	innerContext := map[string]interface{}{
+		"@protected":  true,
+		"@version":    1.1,
+		"id":          "@id",
+		"type":        "@type",
+		"iden3-vocab": vocabURN,
+		"xsd":         "http://www.w3.org/2001/XMLSchema#",
+	}
+
+	for _, field := range request.Attributes {
 		xsdType := "xsd:string"
 		switch field.Type {
 		case "integer":
@@ -290,40 +437,19 @@ func (s *SchemaService) generateJSONLDContext(request *dto.SchemaCreatedRequestD
 			xsdType = "xsd:double"
 		case "boolean":
 			xsdType = "xsd:boolean"
+		case "string":
+
 		}
 
-		fields[field.Name] = map[string]interface{}{
+		innerContext[field.Name] = map[string]interface{}{
 			"@id":   "iden3-vocab:" + field.Name,
 			"@type": xsdType,
 		}
 
-		if field.Slot != "" {
-			slotKey := ""
-			switch field.Slot {
-			case "IndexDataSlotA":
-				slotKey = "slotIndexA"
-			case "IndexDataSlotB":
-				slotKey = "slotIndexB"
-			case "ValueDataSlotA":
-				slotKey = "slotValueA"
-			case "ValueDataSlotB":
-				slotKey = "slotValueB"
-			}
-			if slotKey != "" {
-				serializationParts = append(serializationParts, slotKey+"="+field.Name)
-			}
+		if !request.IsMerklized {
+			slotKey := field.Slot
+			serializationParts = append(serializationParts, slotKey+"="+field.Name)
 		}
-	}
-
-	innerContext := map[string]interface{}{
-		"@propagate":  true,
-		"@protected":  true,
-		"iden3-vocab": vocabURN,
-		"xsd":         "http://www.w3.org/2001/XMLSchema#",
-	}
-
-	for k, v := range fields {
-		innerContext[k] = v
 	}
 
 	if len(serializationParts) > 0 {
@@ -337,11 +463,137 @@ func (s *SchemaService) generateJSONLDContext(request *dto.SchemaCreatedRequestD
 				"@version":   1.1,
 				"id":         "@id",
 				"type":       "@type",
-				request.Type: map[string]interface{}{
+				credType: map[string]interface{}{
 					"@id":      credURN,
 					"@context": innerContext,
 				},
 			},
 		},
 	}
+}
+
+func (s *SchemaService) uploadToIPFS(sc *schema.Schema, jsonSchema, jsonLdContext map[string]interface{}, schemaType string) (string, string, error) {
+	jsonBytes, err := json.MarshalIndent(jsonSchema, "", "  ")
+	if err != nil {
+		return "", "", fmt.Errorf("marshal json schema failed: %w", err)
+	}
+
+	ldBytes, err := json.MarshalIndent(jsonLdContext, "", "  ")
+	if err != nil {
+		return "", "", fmt.Errorf("marshal jsonld context failed: %w", err)
+	}
+
+	namePrefix := strings.ToLower(strings.ReplaceAll(schemaType, " ", "-"))
+
+	schemaURL, err := s.ipfs.Upload(namePrefix+".json", jsonBytes)
+	if err != nil {
+		return "", "", fmt.Errorf("upload json schema failed: %w", err)
+	}
+
+	contextURL, err := s.ipfs.Upload(namePrefix+".jsonld", ldBytes)
+	if err != nil {
+		return "", "", fmt.Errorf("upload jsonld context failed: %w", err)
+	}
+
+	return schemaURL, contextURL, nil
+}
+
+func (s *SchemaService) ParseClaimFromSchema(ctx context.Context, schemaID string, credentialData map[string]interface{}) (*dto.ClaimDataDto, error) {
+	schema, err := s.schemaRepo.FindSchemaByPublicId(ctx, schemaID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.SchemaNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+
+	claimData := &dto.ClaimDataDto{
+		Type:              schema.Type,
+		IsMerklized:       schema.IsMerklized,
+		CredentialSubject: make(map[string]interface{}),
+	}
+
+	if schema.SchemaURL != "" {
+		schemaHash, err := s.getSchemaHash(schema.SchemaURL)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to get schema hash: %w", err)
+		}
+
+		claimData.SchemaHash = schemaHash.BigInt().String()
+	}
+
+	for _, attr := range schema.SchemaAttributes {
+		value, exists := credentialData[attr.Name]
+		if attr.Required && !exists {
+			return nil, fmt.Errorf("required field '%s' is missing", attr.Name)
+		}
+
+		if err := s.validateAttributeType(attr.Type, value); err != nil {
+			return nil, fmt.Errorf("invalid type for field '%s': %w", attr.Name, err)
+		}
+		claimData.CredentialSubject[attr.Name] = value
+	}
+
+	if subjectID, ok := credentialData["id"].(string); ok {
+		claimData.CredentialSubject["id"] = subjectID
+	}
+	if !schema.IsMerklized {
+		claimData.SlotIndexMapping = s.buildSlotIndexMapping(schema.SchemaAttributes)
+	}
+
+	return claimData, nil
+}
+
+func (s *SchemaService) getSchemaHash(url string) (*core.SchemaHash, error) {
+	var sHash core.SchemaHash
+	h := keccak256.Hash([]byte(url))
+	copy(sHash[:], h[len(h)-16:])
+	sHashIndex, err := sHash.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	claim, _ := core.NewSchemaHashFromHex(string(sHashIndex))
+	return &claim, nil
+}
+
+func (s *SchemaService) validateAttributeType(expectedType string, value interface{}) error {
+	switch expectedType {
+	case "string":
+		if _, ok := value.(string); !ok {
+			return fmt.Errorf("expected string, got %T", value)
+		}
+	case "integer":
+		switch value.(type) {
+		case int, int32, int64, float64:
+			return nil
+		default:
+			return fmt.Errorf("expected integer, got %T", value)
+		}
+	case "number":
+		switch value.(type) {
+		case float32, float64, int, int32, int64:
+			return nil
+		default:
+			return fmt.Errorf("expected number, got %T", value)
+		}
+	case "boolean":
+		if _, ok := value.(bool); !ok {
+			return fmt.Errorf("expected boolean, got %T", value)
+		}
+	default:
+		// Cho phép các type khác
+		return nil
+	}
+	return nil
+}
+
+func (s *SchemaService) buildSlotIndexMapping(attributes []*schema.SchemaAttribute) map[string]string {
+	mapping := make(map[string]string)
+	for _, attr := range attributes {
+		if attr.Slot != "" {
+			mapping[attr.Slot] = attr.Name
+		}
+	}
+	return mapping
 }

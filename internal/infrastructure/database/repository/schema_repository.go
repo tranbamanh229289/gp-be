@@ -21,7 +21,23 @@ func NewSchemaRepository(db *postgres.PostgresDB) schema.ISchemaRepository {
 
 func (r *SchemaRepository) FindSchemaByPublicId(ctx context.Context, publicId string) (*schema.Schema, error) {
 	var entity schema.Schema
-	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&entity).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("SchemaAttributes").Where("public_id = ?", publicId).First(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
+func (r *SchemaRepository) FindSchemaByHash(ctx context.Context, hash string) (*schema.Schema, error) {
+	var entity schema.Schema
+	if err := r.db.GetGormDB().WithContext(ctx).Where("hash = ?", hash).First(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
+func (r *SchemaRepository) FindSchemaByContextURL(ctx context.Context, url string) (*schema.Schema, error) {
+	var entity schema.Schema
+	if err := r.db.GetGormDB().WithContext(ctx).Where("context_url = ?", url).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -29,7 +45,7 @@ func (r *SchemaRepository) FindSchemaByPublicId(ctx context.Context, publicId st
 
 func (r *SchemaRepository) FindAllSchemas(ctx context.Context) ([]*schema.Schema, error) {
 	var entities []*schema.Schema
-	if err := r.db.GetGormDB().WithContext(ctx).Find(&entities).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("SchemaAttributes").Find(&entities).Error; err != nil {
 		return nil, err
 	}
 	return entities, nil

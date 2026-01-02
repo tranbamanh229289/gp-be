@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"be/internal/domain/credential"
+	"be/internal/domain/schema"
 	"be/internal/infrastructure/database/postgres"
 	"context"
 )
@@ -10,53 +10,60 @@ type IdentityRepository struct {
 	db *postgres.PostgresDB
 }
 
-func NewIdentityRepository(db *postgres.PostgresDB) credential.IIdentityRepository {
+func NewIdentityRepository(db *postgres.PostgresDB) schema.IIdentityRepository {
 	return &IdentityRepository{
 		db: db,
 	}
 }
 
-func (r *IdentityRepository) FindIdentityByPublicId(ctx context.Context, publicId string) (*credential.Identity, error) {
-	var identity credential.Identity
+func (r *IdentityRepository) FindIdentityByPublicId(ctx context.Context, publicId string) (*schema.Identity, error) {
+	var identity schema.Identity
 	if err := r.db.GetGormDB().WithContext(ctx).Where("public_id = ?", publicId).First(&identity).Error; err != nil {
 		return nil, err
 	}
 	return &identity, nil
 }
 
-func (r *IdentityRepository) FindIdentityByPublicKey(ctx context.Context, publicKeyX string, publicKeyY string) (*credential.Identity, error) {
-	var identity credential.Identity
+func (r *IdentityRepository) FindIdentityByPublicKey(ctx context.Context, publicKeyX string, publicKeyY string) (*schema.Identity, error) {
+	var identity schema.Identity
 	if err := r.db.GetGormDB().WithContext(ctx).Where("public_key_x = ? AND public_key_y = ?", publicKeyX, publicKeyY).First(&identity).Error; err != nil {
 		return nil, err
 	}
 	return &identity, nil
 }
 
-func (r *IdentityRepository) FindIdentityByDID(ctx context.Context, did string) (*credential.Identity, error) {
-	var identity credential.Identity
+func (r *IdentityRepository) FindIdentityByDID(ctx context.Context, did string) (*schema.Identity, error) {
+	var identity schema.Identity
 	if err := r.db.GetGormDB().WithContext(ctx).Where("did = ?", did).First(&identity).Error; err != nil {
 		return nil, err
 	}
 	return &identity, nil
-
 }
 
-func (r *IdentityRepository) FindAllIdentities(ctx context.Context) ([]*credential.Identity, error) {
-	var identities []*credential.Identity
+func (r *IdentityRepository) FindIdentityByRole(ctx context.Context, role string) ([]*schema.Identity, error) {
+	var identities []*schema.Identity
+	if err := r.db.GetGormDB().WithContext(ctx).Where("role = ?", role).Find(&identities).Error; err != nil {
+		return nil, err
+	}
+	return identities, nil
+}
+
+func (r *IdentityRepository) FindAllIdentities(ctx context.Context) ([]*schema.Identity, error) {
+	var identities []*schema.Identity
 	if err := r.db.GetGormDB().WithContext(ctx).Find(&identities).Error; err != nil {
 		return nil, err
 	}
 	return identities, nil
 }
 
-func (r *IdentityRepository) CreateIdentity(ctx context.Context, entity *credential.Identity) (*credential.Identity, error) {
+func (r *IdentityRepository) CreateIdentity(ctx context.Context, entity *schema.Identity) (*schema.Identity, error) {
 	if err := r.db.GetGormDB().Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
-func (r *IdentityRepository) UpdateCitizenIdentity(ctx context.Context, entity *credential.Identity, changes map[string]interface{}) error {
+func (r *IdentityRepository) UpdateIdentity(ctx context.Context, entity *schema.Identity, changes map[string]interface{}) error {
 	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}

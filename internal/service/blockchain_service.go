@@ -51,7 +51,7 @@ func (s *BlockchainService) CrawlBlocks(ctx context.Context) error {
 			Timestamp: block.Time(),
 			TxCount:   len(block.Transactions()),
 			GasUsed:   block.GasUsed(),
-			CrawledAt: time.Now(),
+			CrawledAt: time.Now().UTC(),
 		}
 		blockDatas = append(blockDatas, &blockData)
 	}
@@ -118,7 +118,7 @@ func (s *BlockchainService) CrawlTransactions(ctx context.Context, address strin
 					GasPrice:    tx.GasPrice().String(),
 					GasUsed:     receipt.GasUsed,
 					Status:      receipt.Status,
-					CrawledAt:   time.Now(),
+					CrawledAt:   time.Now().UTC(),
 				}
 				txDatas = append(txDatas, &txData)
 			}
@@ -175,7 +175,7 @@ func (s *BlockchainService) CrawlEvents(ctx context.Context, contractAddress str
 			Data:            common.Bytes2Hex(log.Data),
 			BlockNumber:     log.BlockNumber,
 			TxHash:          log.TxHash.Hex(),
-			CrawledAt:       time.Now(),
+			CrawledAt:       time.Now().UTC(),
 		}
 		events = append(events, &event)
 	}

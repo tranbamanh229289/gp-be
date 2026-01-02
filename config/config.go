@@ -133,7 +133,7 @@ type PinataConfig struct {
 	APISecretKey string
 	JWTKey       string
 	Endpoint     string
-	BaseURL      string
+	GatewayURL   string
 }
 type CircuitConfig struct {
 	MTLevel        int
@@ -296,7 +296,8 @@ func NewConfig() (*Config, error) {
 			APIKey:       viper.GetString("ipfs.pinata.api_key"),
 			APISecretKey: viper.GetString("ipfs.pinata.api_secret_key"),
 			JWTKey:       viper.GetString("ipfs.pinata.jwt_key"),
-			BaseURL:      viper.GetString("ipfs.pinama.base_url"),
+			Endpoint:     viper.GetString("ipfs.pinata.endpoint"),
+			GatewayURL:   viper.GetString("ipfs.pinata.gateway_url"),
 		},
 		Circuit: CircuitConfig{
 			MTLevel:        viper.GetInt("circuit.mt_level"),

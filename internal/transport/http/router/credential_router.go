@@ -7,8 +7,17 @@ import (
 )
 
 func SetupCredentialRouter(apiGroup *gin.RouterGroup, credentialHandler *handler.CredentialHandler) {
-	credentialRequestGroup := apiGroup.Group("credential-requests")
+	credentialGroup := apiGroup.Group("credentials")
+	credentialRequestGroup := credentialGroup.Group("request")
+	verifiableCredentialGroup := credentialGroup.Group("verifiable")
 
-	credentialRequestGroup.POST("", credentialHandler.CreateCredentialRequest)
 	credentialRequestGroup.GET("", credentialHandler.GetCredentialRequests)
+	credentialRequestGroup.POST("", credentialHandler.CreateCredentialRequest)
+	credentialRequestGroup.PATCH("/:id", credentialHandler.UpdateCredentialRequest)
+
+	verifiableCredentialGroup.GET("", credentialHandler.GetVerifiableCredentials)
+	verifiableCredentialGroup.GET("/:id", credentialHandler.GetVerifiableCredential)
+	verifiableCredentialGroup.PATCH("/:id", credentialHandler.UpdateVerifiableCredential)
+	verifiableCredentialGroup.PATCH("sign/:id", credentialHandler.SignVerifiableCredential)
+	verifiableCredentialGroup.POST("/:id", credentialHandler.IssueVerifiableCredential)
 }

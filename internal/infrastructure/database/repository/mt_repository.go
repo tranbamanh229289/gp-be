@@ -16,7 +16,6 @@ type IMTRepository interface {
 type MTRepository struct {
 	config *config.Config
 	db     *postgres.PostgresDB
-	mtID   uint64
 }
 
 func NewMerkletreeRepository(config *config.Config, db *postgres.PostgresDB) IMTRepository {
@@ -24,13 +23,12 @@ func NewMerkletreeRepository(config *config.Config, db *postgres.PostgresDB) IMT
 }
 
 func (r *MTRepository) NewMerkleTree(ctx context.Context) (*merkletree.MerkleTree, uint64, error) {
-	mtID := r.mtID
-	r.mtID++
+	mtId, err := NextMTID(ctx, r.db.GetPgxPool())
 
-	storage := NewSqlStorage(r.db.GetPgxPool(), mtID)
+	storage := NewSqlStorage(r.db.GetPgxPool(), mtId)
 	mt, err := merkletree.NewMerkleTree(ctx, storage, r.config.Circuit.MTLevel)
 
-	return mt, mtID, err
+	return mt, mtId, err
 }
 
 func (r *MTRepository) LoadMerkleTree(ctx context.Context, mtID uint64) (*merkletree.MerkleTree, error) {

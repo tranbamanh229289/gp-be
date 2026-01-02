@@ -18,26 +18,34 @@ const (
 // Blockchain
 
 // Identity
+type IdentityRole string
+
 const (
 	IdentityHolderRole   = "holder"
 	IdentityVerifierRole = "verifier"
 	IdentityIssuerRole   = "issuer"
 )
 
-// Credential
+// Document
+type DocumentType string
+
 const (
-	CitizenIdentityType = "citizen_identity"
-	AcademicDegreeType  = "academic_degree"
-	HealthInsuranceType = "health_insurance"
-	DriverLicenseType   = "driver_license"
-	PassportType        = "passport"
+	CitizenIdentity = "citizen_identity"
+	AcademicDegree  = "academic_degree"
+	HealthInsurance = "health_insurance"
+	DriverLicense   = "driver_license"
+	Passport        = "passport"
 )
+
+type Gender string
 
 const (
 	MaleGender   = "male"
 	FemaleGender = "female"
 	OtherGender  = "other"
 )
+
+type DegreeType string
 
 const (
 	BachelorDegreeType           = "bachelor"
@@ -47,6 +55,8 @@ const (
 	FullProfessorDegreeType      = "full_professor"
 )
 
+type Classification string
+
 const (
 	ExcellentClassification = "excellent"
 	VeryGoodClassification  = "very_good"
@@ -55,11 +65,15 @@ const (
 	PassClassification      = "pass"
 )
 
+type DocumentStatus string
+
 const (
 	DocumentActiveStatus  = "active"
 	DocumentRevokeStatus  = "revoke"
 	DocumentExpiredStatus = "expired"
 )
+
+type PassportType string
 
 const (
 	PassportOrdinaryType   = "ordinary"
@@ -68,27 +82,35 @@ const (
 )
 
 // proof
+type ProofRequestStatus string
+
 const (
-	ProofPendingStatus   = "pending"
-	ProofCompletedStatus = "completed"
-	ProofFailedStatus    = "failed"
-	ProofExpiredStatus   = "expired"
-	ProofCancelledStatus = "cancelled"
+	ProofRequestActiveStatus    = "active"
+	ProofRequestExpiredStatus   = "expired"
+	ProofRequestCancelledStatus = "cancelled"
+)
+
+type ProofResponseStatus string
+
+const (
+	ProofResponsePendingStatus = "pending"
+	ProofResponseSuccessStatus = "success"
+	ProofResponseFailedStatus  = "failed"
 )
 
 // verifiable credential
+type VerifiableCredentialType string
+
 const (
-	ProofBjjSignature2021Type  = "sig"
-	Iden3SparseMerkleTreeProof = "mtp"
-)
-const (
-	VerifiableCredentialPendingStatus = "pending"
-	VerifiableCredentialIssuedStatus  = "issued"
-	VerifiableCredentialRevokedStatus = "revoked"
-	VerifiableCredentialExpiredStatus = "expired"
+	VerifiableCredentialNotSignedStatus = "notSigned"
+	VerifiableCredentialIssuedStatus    = "issued"
+	VerifiableCredentialRevokedStatus   = "revoked"
+	VerifiableCredentialExpiredStatus   = "expired"
 )
 
 // credential request
+type CredentialRequestStatus string
+
 const (
 	CredentialRequestPendingStatus  = "pending"
 	CredentialRequestApprovedStatus = "approved"
@@ -96,7 +118,19 @@ const (
 )
 
 // schema
+type SchemaType string
+
 const (
 	SchemaActiveStatus = "active"
 	SchemaRevokeStatus = "revoked"
+)
+
+// Slot
+type Slot string
+
+const (
+	SlotIndexA Slot = "slotIndexA"
+	SlotIndexB Slot = "slotIndexB"
+	SlotDataA  Slot = "slotDataA"
+	SlotDataB  Slot = "slotDataB"
 )

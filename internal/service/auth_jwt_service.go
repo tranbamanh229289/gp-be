@@ -214,8 +214,8 @@ func (s *AuthJWTService) RefreshToken(ctx context.Context, tokenString string) (
 }
 
 func (s *AuthJWTService) GetToken(claims *dto.Claims, tokenType constant.TokenType) (string, error) {
-	now := time.Now()
-	expiration := time.Now()
+	now := time.Now().UTC()
+	expiration := time.Now().UTC()
 	if tokenType == constant.AccessToken {
 		expiration = expiration.Add(s.config.JWT.AccessTokenTTL)
 	} else {

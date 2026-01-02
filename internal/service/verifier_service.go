@@ -1,6 +1,7 @@
 package service
 
 import (
+	"be/config"
 	"context"
 	"crypto"
 	"encoding/json"
@@ -864,4 +865,36 @@ func isResponseTypeAccepted(requestAccept []string, responseMediaType iden3comm.
 	}
 
 	return errors.New("response type is not in accept profiles of the request")
+}
+
+// custom
+
+type IVerifierService interface {
+	GetVerifier() *Verifier
+}
+type VerifierService struct {
+	config   *config.Config
+	verifier *Verifier
+}
+
+func NewVerifierService(config *config.Config) (IVerifierService, error) {
+	resolvers := map[string]pubsignals.StateResolver{
+		config.Blockchain.Resolver: state.NewETHResolver(config.Blockchain.RPC, config.Blockchain.StateContract),
+	}
+
+	dir := config.Circuit.VerifyingKey
+	keyLoader := loaders.FSKeyLoader{Dir: dir}
+	verifier, err := NewVerifier(keyLoader, resolvers)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create verifier %s", err)
+	}
+
+	return &VerifierService{
+		config:   config,
+		verifier: verifier,
+	}, nil
+}
+
+func (s *VerifierService) GetVerifier() *Verifier {
+	return s.verifier
 }

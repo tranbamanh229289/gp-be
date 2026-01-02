@@ -1,6 +1,8 @@
 package document
 
-import "context"
+import (
+	"context"
+)
 
 type ICitizenIdentityRepository interface {
 	FindCitizenIdentityByPublicId(ctx context.Context, publicId string) (*CitizenIdentity, error)

@@ -12,9 +12,9 @@ import (
 )
 
 var provinces = map[string]uint{
-	"ha_noi":      1,
-	"cao_bang":    4,
-	"tuyen_quang": 8,
+	"ha_noi":      10,
+	"cao_bang":    30,
+	"tuyen_quang": 50,
 	"dien_bien":   11,
 	"lai_chau":    12,
 	"son_la":      14,
@@ -138,7 +138,7 @@ var majors = map[string]string{
 	"sociology":                                       "QHX28",
 }
 
-func randomDigits(n int) (string, error) {
+func RandomDigits(n int) (string, error) {
 	result := make([]byte, n)
 
 	for i := 0; i < n; i++ {
@@ -160,7 +160,7 @@ func normalize(s string) string {
 	return s
 }
 
-func GetIdNumber(dateOfBirth time.Time, placeOfBirth, gender string) (string, error) {
+func GetIdNumber(dateOfBirth time.Time, gender string) (string, error) {
 	if gender != "male" && gender != "female" {
 		return "", fmt.Errorf("gender must be male or female")
 	}
@@ -174,14 +174,9 @@ func GetIdNumber(dateOfBirth time.Time, placeOfBirth, gender string) (string, er
 
 	birthCode := strconv.Itoa(dateOfBirth.Year())
 
-	placeParts := strings.Split(placeOfBirth, ",")
-	province := strings.TrimSpace(placeParts[len(placeParts)-1])
-	provinceKey := normalize(province)
-	provinceCode := fmt.Sprintf("%d", provinces[provinceKey])
+	serial, err := RandomDigits(5)
 
-	serial, err := randomDigits(5)
-
-	return genderCode + birthCode + provinceCode + serial, err
+	return "00" + genderCode + birthCode + serial, err
 }
 
 func GetDegreeNumber(university, major string, graduateYear uint) (string, error) {
@@ -190,7 +185,7 @@ func GetDegreeNumber(university, major string, graduateYear uint) (string, error
 
 	majorKey := normalize(major)
 	majorCode := majors[majorKey]
-	serial, err := randomDigits(6)
+	serial, err := RandomDigits(6)
 
 	graduateYearCode := fmt.Sprintf("%d", graduateYear)
 
@@ -198,16 +193,16 @@ func GetDegreeNumber(university, major string, graduateYear uint) (string, error
 }
 
 func GetInsuranceNumber(insuranceType string) (string, error) {
-	serial, err := randomDigits(11)
-	return insuranceType + serial, err
+	serial, err := RandomDigits(13)
+	return "00" + serial, err
 }
 
 func GetLicenseNumber(class string) (string, error) {
-	serial, err := randomDigits(11)
-	return class + serial, err
+	serial, err := RandomDigits(11)
+	return class + "-" + serial, err
 }
 
-func GetPassportNumber(passportType string) (string, error) {
-	serial, err := randomDigits(11)
-	return passportType + serial, err
+func GetPassportNumber(nation string) (string, error) {
+	serial, err := RandomDigits(11)
+	return nation + "-" + serial, err
 }

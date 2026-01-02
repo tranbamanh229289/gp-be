@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS health_insurances CASCADE;
+DROP TABLE IF EXISTS health_insurances;

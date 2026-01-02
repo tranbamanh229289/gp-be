@@ -79,7 +79,8 @@ func NewDocumentService(
 }
 
 func (s *DocumentService) CreateCitizenIdentity(ctx context.Context, request *dto.CitizenIdentityCreatedRequestDto) (*dto.CitizenIdentityResponseDto, error) {
-	idNumber, _ := utils.GetIdNumber(request.DateOfBirth, request.PlaceOfBirth, request.Gender)
+
+	idNumber, _ := utils.GetIdNumber(request.DateOfBirth, request.Gender)
 	citizenCreated, err := s.citizenIdentityRepo.CreateCitizenIdentity(ctx, &document.CitizenIdentity{
 		PublicID:     uuid.New(),
 		IDNumber:     idNumber,
@@ -91,8 +92,8 @@ func (s *DocumentService) CreateCitizenIdentity(ctx context.Context, request *dt
 		Status:       constant.DocumentActiveStatus,
 		IssueDate:    request.IssueDate,
 		ExpiryDate:   request.ExpiryDate,
-		IssuerDID:    "",
 		HolderDID:    request.HolderDID,
+		IssuerDID:    request.IssuerDID,
 	})
 
 	if err != nil {
@@ -138,7 +139,7 @@ func (s *DocumentService) RevokeCitizenIdentity(ctx context.Context, id string, 
 		}
 		return &constant.InternalServer
 	}
-	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now()}
+	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now().UTC()}
 	return s.citizenIdentityRepo.UpdateCitizenIdentity(ctx, citizenIdentity, changes)
 }
 
@@ -203,7 +204,8 @@ func (s *DocumentService) CreateAcademicDegree(ctx context.Context, request *dto
 		Classification: request.Classification,
 		Status:         constant.DocumentActiveStatus,
 		IssueDate:      request.IssueDate,
-		IssuerDID:      "",
+		HolderDID:      request.HolderDID,
+		IssuerDID:      request.IssuerDID,
 	})
 
 	if err != nil {
@@ -247,7 +249,7 @@ func (s *DocumentService) RevokeAcademicDegree(ctx context.Context, id string, r
 		}
 		return &constant.InternalServer
 	}
-	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now()}
+	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now().UTC()}
 	return s.academicDegreeRepo.UpdateAcademicDegree(ctx, academicDegree, changes)
 }
 
@@ -294,7 +296,6 @@ func (s *DocumentService) GetAcademicDegrees(ctx context.Context) ([]*dto.Academ
 
 func (s *DocumentService) CreateHealthInsurance(ctx context.Context, request *dto.HealthInsuranceCreatedRequestDto) (*dto.HealthInsuranceResponseDto, error) {
 	citizenIdentity, err := s.citizenIdentityRepo.FindCitizenIdentityByHolderDID(ctx, request.HolderDID)
-
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.HealthInsuranceNotFound
@@ -312,7 +313,8 @@ func (s *DocumentService) CreateHealthInsurance(ctx context.Context, request *dt
 		Status:          constant.DocumentActiveStatus,
 		StartDate:       request.StartDate,
 		ExpiryDate:      request.ExpiryDate,
-		IssuerDID:       "",
+		HolderDID:       request.HolderDID,
+		IssuerDID:       request.IssuerDID,
 	})
 
 	if err != nil {
@@ -353,7 +355,7 @@ func (s *DocumentService) RevokeHealthInsurance(ctx context.Context, id string, 
 		}
 		return &constant.InternalServer
 	}
-	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now()}
+	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now().UTC()}
 	return s.healthInsuranceRepo.UpdateHealthInsurance(ctx, healthInsurance, changes)
 }
 
@@ -407,16 +409,16 @@ func (s *DocumentService) CreateDriverLicense(ctx context.Context, request *dto.
 
 	licenseNumber, _ := utils.GetLicenseNumber(request.Class)
 	driverLicenseCreated, err := s.driverLicenseRepo.CreateDriverLicense(ctx, &document.DriverLicense{
-		PublicID:       uuid.New(),
-		CID:            citizenIdentity.ID,
-		LicenseNumber:  licenseNumber,
-		Class:          request.Class,
-		Point:          0,
-		PointResetDate: request.IssueDate,
-		Status:         constant.DocumentActiveStatus,
-		IssueDate:      request.IssueDate,
-		ExpiryDate:     request.ExpiryDate,
-		IssuerDID:      "",
+		PublicID:      uuid.New(),
+		CID:           citizenIdentity.ID,
+		LicenseNumber: licenseNumber,
+		Class:         request.Class,
+		Point:         0,
+		Status:        constant.DocumentActiveStatus,
+		IssueDate:     request.IssueDate,
+		ExpiryDate:    request.ExpiryDate,
+		HolderDID:     request.HolderDID,
+		IssuerDID:     request.IssuerDID,
 	})
 
 	if err != nil {
@@ -437,7 +439,6 @@ func (s *DocumentService) UpdateDriverLicense(ctx context.Context, id string, re
 	}
 	driverLicense.Class = request.Class
 	driverLicense.Point = request.Point
-	driverLicense.PointResetDate = request.PointResetDate
 	driverLicense.IssueDate = request.IssueDate
 	driverLicense.ExpiryDate = request.ExpiryDate
 
@@ -458,7 +459,7 @@ func (s *DocumentService) RevokeDriverLicense(ctx context.Context, id string, re
 		}
 		return &constant.InternalServer
 	}
-	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now()}
+	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now().UTC()}
 	return s.driverLicenseRepo.UpdateDriverLicense(ctx, driverLicense, changes)
 }
 
@@ -515,7 +516,7 @@ func (s *DocumentService) CreatePassport(ctx context.Context, request *dto.Passp
 		return nil, err
 	}
 
-	passportNumber, _ := utils.GetPassportNumber(request.PassportType)
+	passportNumber, _ := utils.GetPassportNumber(request.Nationality)
 	passportCreated, err := s.passportRepo.CreatePassport(ctx, &document.Passport{
 		PublicID:       uuid.New(),
 		CID:            citizenIdentity.ID,
@@ -526,7 +527,8 @@ func (s *DocumentService) CreatePassport(ctx context.Context, request *dto.Passp
 		Status:         constant.DocumentActiveStatus,
 		IssueDate:      request.IssueDate,
 		ExpiryDate:     request.ExpiryDate,
-		IssuerDID:      "",
+		HolderDID:      request.HolderDID,
+		IssuerDID:      request.IssuerDID,
 	})
 
 	if err != nil {
@@ -543,7 +545,7 @@ func (s *DocumentService) UpdatePassport(ctx context.Context, id string, request
 		}
 		return nil, &constant.InternalServer
 	}
-
+	passport.PassportType = request.PassportType
 	passport.Nationality = request.Nationality
 	passport.MRZ = request.MRZ
 	passport.IssueDate = request.IssueDate
@@ -566,7 +568,7 @@ func (s *DocumentService) RevokePassport(ctx context.Context, id string, request
 		}
 		return &constant.InternalServer
 	}
-	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now()}
+	changes := map[string]interface{}{"status": request.Status, "revoked_at": time.Now().UTC()}
 	return s.passportRepo.UpdatePassport(ctx, passport, changes)
 }
 

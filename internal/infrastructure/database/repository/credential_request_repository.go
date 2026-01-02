@@ -20,7 +20,7 @@ func NewCredentialRequestRepository(
 
 func (r *CredentialRequestRepository) FindCredentialRequestByPublicId(ctx context.Context, publicId string) (*credential.CredentialRequest, error) {
 	var credentialRequest *credential.CredentialRequest
-	if err := r.db.GetGormDB().WithContext(ctx).Preload("Holder").Preload("Schema").Where("public_id = ?", publicId).First(credentialRequest).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Where("public_id = ?", publicId).First(credentialRequest).Error; err != nil {
 		return nil, err
 	}
 	return credentialRequest, nil
@@ -28,7 +28,7 @@ func (r *CredentialRequestRepository) FindCredentialRequestByPublicId(ctx contex
 
 func (r *CredentialRequestRepository) FindAllCredentialRequest(ctx context.Context) ([]*credential.CredentialRequest, error) {
 	var credentialRequests []*credential.CredentialRequest
-	if err := r.db.GetGormDB().WithContext(ctx).Preload("Holder").Preload("Schema").Find(credentialRequests).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Find(credentialRequests).Error; err != nil {
 		return nil, err
 	}
 	return credentialRequests, nil

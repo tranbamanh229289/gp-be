@@ -30,7 +30,7 @@ func (p *Producer) Publish(ctx context.Context, exchange string, message Message
 		ContentType:  "application/json",
 		Body:         body,
 		DeliveryMode: amqp091.Persistent,
-		Timestamp:    time.Now(),
+		Timestamp:    time.Now().UTC(),
 		Headers:      message.Headers,
 		Priority:     message.Priority,
 	})
@@ -61,7 +61,7 @@ func (p *Producer) PublishWithAck(ctx context.Context, exchange, routingKey stri
 		ContentType:  "application/json",
 		Body:         body,
 		DeliveryMode: amqp091.Persistent,
-		Timestamp:    time.Now(),
+		Timestamp:    time.Now().UTC(),
 		Headers:      message.Headers,
 		Priority:     message.Priority,
 	})

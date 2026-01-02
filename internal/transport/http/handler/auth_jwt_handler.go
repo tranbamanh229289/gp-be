@@ -29,6 +29,10 @@ func (h *AuthJWTHandler) GetAllUser(c *gin.Context) {
 
 func (h *AuthJWTHandler) GetProfile(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		response.RespondError(c, &constant.BadRequest)
+		return
+	}
 	user, err := h.authService.GetProfile(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
@@ -38,6 +42,10 @@ func (h *AuthJWTHandler) GetProfile(c *gin.Context) {
 
 func (h *AuthJWTHandler) UpdateProfile(c *gin.Context) {
 	id := c.Param("id")
+	if id == "" {
+		response.RespondError(c, &constant.BadRequest)
+		return
+	}
 	var userRequest dto.UserRequest
 	if err := c.ShouldBindJSON(userRequest); err != nil {
 		response.RespondError(c, &constant.BadRequest)

@@ -8,10 +8,10 @@ import (
 
 func SetupDocumentRouter(apiGroup *gin.RouterGroup, documentHandler *handler.DocumentHandler) {
 	credentialGroup := apiGroup.Group("documents")
-	citizenIdentityGroup := credentialGroup.Group("citizen-identity")
-	academicDegreeGroup := credentialGroup.Group("academic-degree")
-	healthInsuranceGroup := credentialGroup.Group("health-insurance")
-	driverLicenseGroup := credentialGroup.Group("driver-license")
+	citizenIdentityGroup := credentialGroup.Group("citizen_identity")
+	academicDegreeGroup := credentialGroup.Group("academic_degree")
+	healthInsuranceGroup := credentialGroup.Group("health_insurance")
+	driverLicenseGroup := credentialGroup.Group("driver_license")
 	passportGroup := credentialGroup.Group("passport")
 
 	citizenIdentityGroup.GET("/:id", documentHandler.GetCitizenIdentity)

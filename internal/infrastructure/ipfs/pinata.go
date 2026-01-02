@@ -98,11 +98,10 @@ func (i *Pinata) Upload(fileName string, content []byte) (string, error) {
 	return result.IpfsHash, nil
 }
 
-func (i *Pinata) Remove(cid string) error {
-	if cid == "" {
+func (i *Pinata) Remove(url string) error {
+	if url == "" {
 		return fmt.Errorf("cid is required")
 	}
-	url := i.config.IPFS.Endpoint + "/upin/" + cid
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err

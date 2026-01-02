@@ -9,6 +9,7 @@ import (
 func SetupAuthZkRouter(apiGroup *gin.RouterGroup, authZKHandler *handler.AuthZkHandler) {
 	authZkGroup := apiGroup.Group("authzk")
 
+	authZkGroup.GET("", authZKHandler.GetIdentityByRole)
 	authZkGroup.GET("challenge", authZKHandler.Challenge)
 	authZkGroup.POST("register", authZKHandler.Register)
 	authZkGroup.POST("login", authZKHandler.Login)

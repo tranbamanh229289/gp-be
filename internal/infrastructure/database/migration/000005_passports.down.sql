@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS passports CASCADE;
+DROP TABLE IF EXISTS passports;

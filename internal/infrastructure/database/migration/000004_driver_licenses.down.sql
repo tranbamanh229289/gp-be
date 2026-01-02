@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS driver_licenses CASCADE;
+DROP TABLE IF EXISTS driver_licenses;

@@ -9,7 +9,7 @@ import (
 
 func (m *Middleware) LogMiddleware(engine *gin.Engine) {
 	middleware := func(ctx *gin.Context) {
-		startTime := time.Now()
+		startTime := time.Now().UTC()
 		path := ctx.Request.URL.Path
 		query := ctx.Request.URL.RawQuery
 
@@ -20,7 +20,7 @@ func (m *Middleware) LogMiddleware(engine *gin.Engine) {
 		method := ctx.Request.Method
 		ctx.Next()
 
-		endTime := time.Now()
+		endTime := time.Now().UTC()
 		status := ctx.Writer.Status()
 
 		m.logger.Info("HTTP request",

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"be/internal/service"
+	"be/internal/shared/constant"
 	response "be/internal/shared/helper"
 	"be/internal/transport/http/dto"
 	"be/pkg/logger"
@@ -24,10 +25,12 @@ func (h *AuthZkHandler) Register(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&request); err != nil {
 		response.RespondError(c, err)
+		return
 	}
 	identity, err := h.authZkService.Register(c.Request.Context(), &request)
 	if err != nil {
 		response.RespondError(c, err)
+		return
 	}
 	response.RespondSuccess(c, identity)
 }
@@ -36,11 +39,13 @@ func (h *AuthZkHandler) Login(c *gin.Context) {
 	var authResponse protocol.AuthorizationResponseMessage
 	if err := c.ShouldBindJSON(&authResponse); err != nil {
 		response.RespondError(c, err)
+		return
 	}
 
 	identity, err := h.authZkService.Login(c.Request.Context(), &authResponse)
 	if err != nil {
 		response.RespondError(c, err)
+		return
 	}
 	response.RespondSuccess(c, identity)
 }
@@ -49,6 +54,21 @@ func (h *AuthZkHandler) Challenge(c *gin.Context) {
 	res, err := h.authZkService.Challenge(c.Request.Context())
 	if err != nil {
 		response.RespondError(c, err)
+		return
 	}
 	response.RespondSuccess(c, res)
+}
+
+func (h *AuthZkHandler) GetIdentityByRole(c *gin.Context) {
+	role := c.Query("role")
+	if role == "" {
+		response.RespondError(c, &constant.BadRequest)
+	}
+	res, err := h.authZkService.GetIdentityByRole(c.Request.Context(), role)
+	if err != nil {
+		response.RespondError(c, err)
+		return
+	}
+	response.RespondSuccess(c, res)
+
 }

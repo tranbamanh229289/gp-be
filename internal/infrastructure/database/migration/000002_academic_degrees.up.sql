@@ -3,16 +3,17 @@ CREATE TABLE academic_degrees (
     public_id UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
     cid INTEGER NOT NULL REFERENCES citizen_identities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     degree_number VARCHAR(50) NOT NULL UNIQUE,
-    degree_type VARCHAR(50) NOT NULL CHECK (degree_type IN ('Bachelor', 'Master', 'PhD', 'AssociateProfessor', 'FullProfessor')),
+    degree_type VARCHAR(50) NOT NULL CHECK (degree_type IN ('bachelor', 'master', 'phd', 'associate_professor', 'full_professor')),
     major VARCHAR(255) NOT NULL,
     university VARCHAR(255) NOT NULL,
     graduate_year SMALLINT NOT NULL CHECK (graduate_year >= 1900 AND graduate_year <= 2100),
-    gpa DECIMAL(3,2) CHECK (gpa IS NULL OR (gpa >= 0 AND gpa <= 4)),
-    classification VARCHAR(50) CHECK (classification IN ('Excellent', 'VeryGood', 'Good', 'Average', 'Pass') OR classification IS NULL),
-    status VARCHAR(30) NOT NULL DEFAULT 'Active' CHECK (status IN ('Active', 'Expired', 'Revoked')),
+    gpa DECIMAL(4,2) NOT NULL CHECK (gpa >= 0 AND gpa <= 4),
+    classification VARCHAR(50) NOT NULL CHECK (classification IN ('excellent', 'very_good', 'good', 'average', 'pass')),
+    status VARCHAR(30) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'revoked')),
     issue_date DATE NOT NULL,
-    issuer_did VARCHAR(255) CHECK (issuer_did = '' OR issuer_did LIKE 'did:%'),
+    holder_did VARCHAR(255) NOT NULL CHECK (holder_did LIKE 'did:%'),
+    issuer_did VARCHAR(255) NOT NULL CHECK (issuer_did LIKE 'did:%'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    revoked_at TIMESTAMPTZ
+    revoked_at TIMESTAMPTZ 
 )

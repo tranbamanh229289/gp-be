@@ -9,6 +9,7 @@ import (
 	"be/internal/infrastructure/cache/redis"
 	"be/internal/infrastructure/database/postgres"
 	"be/internal/infrastructure/database/repository"
+	"be/internal/infrastructure/ipfs"
 	"be/internal/service"
 	"be/internal/transport/http/handler"
 	"be/internal/transport/http/middleware"
@@ -28,6 +29,7 @@ var configSet = wire.NewSet(config.NewConfig)
 var dbSet = wire.NewSet(postgres.NewDB)
 var migrateSet = wire.NewSet()
 var cacheSet = wire.NewSet(redis.NewCache)
+var ipfsSet = wire.NewSet(ipfs.NewPinata)
 
 // var queueSet = wire.NewSet(rabbitmq.NewQueue, rabbitmq.NewConsumer, rabbitmq.NewProducer)
 var etherSet = wire.NewSet(ether.NewEther)
@@ -37,6 +39,9 @@ var handlerSet = wire.NewSet(
 	handler.NewAuthJWTHandler,
 	handler.NewAuthZkHandler,
 	handler.NewDocumentHandler,
+	handler.NewSchemaHandler,
+	handler.NewCredentialHandler,
+	handler.NewProofHandler,
 )
 
 // Service Set
@@ -47,23 +52,26 @@ var serviceSet = wire.NewSet(
 	service.NewDocumentService,
 	service.NewProofService,
 	service.NewSchemaService,
+	service.NewIdentityService,
+	service.NewVerifierService,
 )
 
 // Repository Set
 var repositorySet = wire.NewSet(
 	repository.NewAcademicDegreeRepository,
-	repository.NewBlockchainRepository,
 	repository.NewCitizenIdentityRepository,
-	repository.NewCredentialRepository,
+	repository.NewCredentialRequestRepository,
 	repository.NewDriverLicenseRepository,
 	repository.NewHealthInsuranceRepository,
 	repository.NewIdentityRepository,
 	repository.NewMerkletreeRepository,
 	repository.NewPassportRepository,
 	repository.NewProofRepository,
+	repository.NewSchemaAttributeRepository,
 	repository.NewSchemaRepository,
 	repository.NewStateTransitionRepository,
 	repository.NewUserRepository,
+	repository.NewVerifiableCredentialRepository,
 )
 
 // Router Set
@@ -81,6 +89,7 @@ func InitializeApplication() (App, error) {
 		logSet,
 		dbSet,
 		cacheSet,
+		ipfsSet,
 		repositorySet,
 		serviceSet,
 		handlerSet,

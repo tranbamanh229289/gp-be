@@ -9,6 +9,7 @@ import (
 func SetupSchemaRouter(apiGroup *gin.RouterGroup, schemaHandler *handler.SchemaHandler) {
 	schemaGroup := apiGroup.Group("schemas")
 
+	schemaGroup.GET("", schemaHandler.GetSchemas)
 	schemaGroup.POST("", schemaHandler.CreateSchema)
 	schemaGroup.PATCH("", schemaHandler.RemoveSchema)
 }

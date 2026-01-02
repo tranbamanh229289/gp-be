@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/jackc/pgx/v5"
@@ -196,4 +197,22 @@ func (err storageError) Unwrap() error {
 
 func newErr(err error, msg string) error {
 	return storageError{err, msg}
+}
+
+func NextMTID(ctx context.Context, db DB) (uint64, error) {
+	var mtId uint64
+
+	err := db.QueryRow(ctx, `
+		UPDATE mt_metadata
+		SET mt_id = nextval('mt_id_seq'),
+		    updated_at = NOW()
+		WHERE id = 1
+		RETURNING mt_id
+	`).Scan(&mtId)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to get next mt_id: %w", err)
+	}
+
+	return mtId, nil
 }

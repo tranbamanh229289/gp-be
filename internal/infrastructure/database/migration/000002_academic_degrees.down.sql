@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS academic_degrees CASCADE;
+DROP TABLE IF EXISTS academic_degrees;

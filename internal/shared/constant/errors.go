@@ -103,10 +103,9 @@ var (
 		HttpStatusCode: http.StatusNotFound,
 	}
 
-	// credential
-	CredentialNotFound = Errors{
-		Code:           "CREDENTIAL_NOT_FOUND",
-		Message:        "Credential not found error",
+	SchemaAttributeNotFound = Errors{
+		Code:           "SCHEMA_ATTRIBUTE_NOT_FOUND",
+		Message:        "Schema attribute not found error",
 		HttpStatusCode: http.StatusNotFound,
 	}
 
@@ -117,6 +116,25 @@ var (
 		HttpStatusCode: http.StatusNotFound,
 	}
 
+	// verifiable_credential
+	VerifiableCredentialNotFound = Errors{
+		Code:           "VERIFIABLE_CREDENTIAL_NOT_FOUND",
+		Message:        "Verifiable credential not found error",
+		HttpStatusCode: http.StatusNotFound,
+	}
+
+	VerifiableCredentialNotSig = Errors{
+		Code:           "VERIFIABLE_CREDENTIAL_NOT_SIG",
+		Message:        "Verifiable credential not sig error",
+		HttpStatusCode: http.StatusNotAcceptable,
+	}
+
+	VerifiableCredentialAlreadySig = Errors{
+		Code:           "VERIFIABLE_CREDENTIAL_ALREADY_SIG",
+		Message:        "Verifiable credential already sig error",
+		HttpStatusCode: http.StatusNotAcceptable,
+	}
+
 	// state transition
 	StateTransition = Errors{
 		Code:           "STATE_TRANSITION_NOT_FOUND",
@@ -125,7 +143,7 @@ var (
 	}
 
 	// proof request
-	Proof = Errors{
+	ProofNotFound = Errors{
 		Code:           "PROOF_NOT_FOUND",
 		Message:        "Proof not found error",
 		HttpStatusCode: http.StatusNotFound,
