@@ -17,37 +17,42 @@ import (
 type IDocumentService interface {
 	CreateCitizenIdentity(ctx context.Context, request *dto.CitizenIdentityCreatedRequestDto) (*dto.CitizenIdentityResponseDto, error)
 	UpdateCitizenIdentity(ctx context.Context, id string, request *dto.CitizenIdentityUpdatedRequestDto) (*dto.CitizenIdentityResponseDto, error)
-	RevokeCitizenIdentity(ctx context.Context, id string, request *dto.CitizenIdentityRevokedRequestDto) error
-	GetCitizenIdentityById(ctx context.Context, id string) (*dto.CitizenIdentityResponseDto, error)
+	RevokeCitizenIdentity(ctx context.Context, id string, request *dto.CitizenIdentityOptionRequestDto) error
+	GetCitizenIdentityByPublicId(ctx context.Context, id string) (*dto.CitizenIdentityResponseDto, error)
 	GetCitizenIdentityByIdNumber(ctx context.Context, idNumber string) (*dto.CitizenIdentityResponseDto, error)
+	GetCitizenIdentityByHolderDID(ctx context.Context, holderDID string) (*dto.CitizenIdentityResponseDto, error)
 	GetCitizenIdentities(ctx context.Context) ([]*dto.CitizenIdentityResponseDto, error)
 
 	CreateAcademicDegree(ctx context.Context, request *dto.AcademicDegreeCreatedRequestDto) (*dto.AcademicDegreeResponseDto, error)
 	UpdateAcademicDegree(ctx context.Context, id string, request *dto.AcademicDegreeUpdatedRequestDto) (*dto.AcademicDegreeResponseDto, error)
-	RevokeAcademicDegree(ctx context.Context, id string, request *dto.AcademicDegreeRevokedRequestDto) error
-	GetAcademicDegreeById(ctx context.Context, id string) (*dto.AcademicDegreeResponseDto, error)
+	RevokeAcademicDegree(ctx context.Context, id string, request *dto.AcademicDegreeOptionRequestDto) error
+	GetAcademicDegreeByPublicId(ctx context.Context, id string) (*dto.AcademicDegreeResponseDto, error)
 	GetAcademicDegreeByDegreeNumber(ctx context.Context, degreeNumber string) (*dto.AcademicDegreeResponseDto, error)
+	GetAcademicDegreeByHolderDID(ctx context.Context, holderDID string) (*dto.AcademicDegreeResponseDto, error)
 	GetAcademicDegrees(ctx context.Context) ([]*dto.AcademicDegreeResponseDto, error)
 
 	CreateHealthInsurance(ctx context.Context, request *dto.HealthInsuranceCreatedRequestDto) (*dto.HealthInsuranceResponseDto, error)
 	UpdateHealthInsurance(ctx context.Context, id string, request *dto.HealthInsuranceUpdatedRequestDto) (*dto.HealthInsuranceResponseDto, error)
-	RevokeHealthInsurance(ctx context.Context, id string, request *dto.HealthInsuranceRevokedRequestDto) error
-	GetHealthInsuranceById(ctx context.Context, id string) (*dto.HealthInsuranceResponseDto, error)
+	RevokeHealthInsurance(ctx context.Context, id string, request *dto.HealthInsuranceOptionRequestDto) error
+	GetHealthInsuranceByPublicId(ctx context.Context, id string) (*dto.HealthInsuranceResponseDto, error)
 	GetHealthInsuranceByInsuranceNumber(ctx context.Context, insuranceNumber string) (*dto.HealthInsuranceResponseDto, error)
+	GetHealthInsuranceByHolderDID(ctx context.Context, holderDID string) (*dto.HealthInsuranceResponseDto, error)
 	GetHealthInsurances(ctx context.Context) ([]*dto.HealthInsuranceResponseDto, error)
 
 	CreateDriverLicense(ctx context.Context, request *dto.DriverLicenseCreatedRequestDto) (*dto.DriverLicenseResponseDto, error)
 	UpdateDriverLicense(ctx context.Context, id string, request *dto.DriverLicenseUpdatedRequestDto) (*dto.DriverLicenseResponseDto, error)
-	RevokeDriverLicense(ctx context.Context, id string, request *dto.DriverLicenseRevokedRequestDto) error
-	GetDriverLicenseById(ctx context.Context, id string) (*dto.DriverLicenseResponseDto, error)
+	RevokeDriverLicense(ctx context.Context, id string, request *dto.DriverLicenseOptionRequestDto) error
+	GetDriverLicenseByPublicId(ctx context.Context, id string) (*dto.DriverLicenseResponseDto, error)
 	GetDriverLicenseByLicenseNumber(ctx context.Context, licenseNumber string) (*dto.DriverLicenseResponseDto, error)
+	GetDriverLicenseByHolderDID(ctx context.Context, holderDID string) (*dto.DriverLicenseResponseDto, error)
 	GetDriverLicenses(ctx context.Context) ([]*dto.DriverLicenseResponseDto, error)
 
 	CreatePassport(ctx context.Context, request *dto.PassportCreatedRequestDto) (*dto.PassportResponseDto, error)
 	UpdatePassport(ctx context.Context, id string, request *dto.PassportUpdatedRequestDto) (*dto.PassportResponseDto, error)
-	RevokePassport(ctx context.Context, id string, request *dto.PassportRevokedRequestDto) error
-	GetPassportById(ctx context.Context, id string) (*dto.PassportResponseDto, error)
+	RevokePassport(ctx context.Context, id string, request *dto.PassportOptionRequestDto) error
+	GetPassportByPublicId(ctx context.Context, id string) (*dto.PassportResponseDto, error)
 	GetPassportByPassportNumber(ctx context.Context, passportNumber string) (*dto.PassportResponseDto, error)
+	GetPassportByHolderDID(ctx context.Context, holderDID string) (*dto.PassportResponseDto, error)
 	GetPassports(ctx context.Context) ([]*dto.PassportResponseDto, error)
 }
 
@@ -80,7 +85,7 @@ func NewDocumentService(
 
 func (s *DocumentService) CreateCitizenIdentity(ctx context.Context, request *dto.CitizenIdentityCreatedRequestDto) (*dto.CitizenIdentityResponseDto, error) {
 
-	idNumber, _ := utils.GetIdNumber(request.DateOfBirth, request.Gender)
+	idNumber, _ := utils.GetIdNumber(request.DateOfBirth, string(request.Gender))
 	citizenCreated, err := s.citizenIdentityRepo.CreateCitizenIdentity(ctx, &document.CitizenIdentity{
 		PublicID:     uuid.New(),
 		IDNumber:     idNumber,
@@ -131,7 +136,7 @@ func (s *DocumentService) UpdateCitizenIdentity(ctx context.Context, id string, 
 
 }
 
-func (s *DocumentService) RevokeCitizenIdentity(ctx context.Context, id string, request *dto.CitizenIdentityRevokedRequestDto) error {
+func (s *DocumentService) RevokeCitizenIdentity(ctx context.Context, id string, request *dto.CitizenIdentityOptionRequestDto) error {
 	citizenIdentity, err := s.citizenIdentityRepo.FindCitizenIdentityByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -143,7 +148,7 @@ func (s *DocumentService) RevokeCitizenIdentity(ctx context.Context, id string, 
 	return s.citizenIdentityRepo.UpdateCitizenIdentity(ctx, citizenIdentity, changes)
 }
 
-func (s *DocumentService) GetCitizenIdentityById(ctx context.Context, id string) (*dto.CitizenIdentityResponseDto, error) {
+func (s *DocumentService) GetCitizenIdentityByPublicId(ctx context.Context, id string) (*dto.CitizenIdentityResponseDto, error) {
 	citizen, err := s.citizenIdentityRepo.FindCitizenIdentityByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -153,6 +158,18 @@ func (s *DocumentService) GetCitizenIdentityById(ctx context.Context, id string)
 	}
 	return dto.CitizenIdentityToResponse(citizen), nil
 }
+
+func (s *DocumentService) GetCitizenIdentityByHolderDID(ctx context.Context, did string) (*dto.CitizenIdentityResponseDto, error) {
+	citizen, err := s.citizenIdentityRepo.FindCitizenIdentityByHolderDID(ctx, did)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.UserNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+	return dto.CitizenIdentityToResponse(citizen), nil
+}
+
 func (s *DocumentService) GetCitizenIdentityByIdNumber(ctx context.Context, idNumber string) (*dto.CitizenIdentityResponseDto, error) {
 	citizen, err := s.citizenIdentityRepo.FindCitizenIdentityByIdNumber(ctx, idNumber)
 	if err != nil {
@@ -169,7 +186,7 @@ func (s *DocumentService) GetCitizenIdentities(ctx context.Context) ([]*dto.Citi
 	citizens, err := s.citizenIdentityRepo.FindAllCitizenIdentities(ctx)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, &constant.UserNotFound
+			return nil, &constant.CitizenIdentityNotFound
 		}
 		return nil, &constant.InternalServer
 	}
@@ -241,7 +258,7 @@ func (s *DocumentService) UpdateAcademicDegree(ctx context.Context, id string, r
 	return dto.AcademicDegreeToResponse(academicDegreeUpdated), nil
 }
 
-func (s *DocumentService) RevokeAcademicDegree(ctx context.Context, id string, request *dto.AcademicDegreeRevokedRequestDto) error {
+func (s *DocumentService) RevokeAcademicDegree(ctx context.Context, id string, request *dto.AcademicDegreeOptionRequestDto) error {
 	academicDegree, err := s.academicDegreeRepo.FindAcademicDegreeByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -253,7 +270,7 @@ func (s *DocumentService) RevokeAcademicDegree(ctx context.Context, id string, r
 	return s.academicDegreeRepo.UpdateAcademicDegree(ctx, academicDegree, changes)
 }
 
-func (s *DocumentService) GetAcademicDegreeById(ctx context.Context, id string) (*dto.AcademicDegreeResponseDto, error) {
+func (s *DocumentService) GetAcademicDegreeByPublicId(ctx context.Context, id string) (*dto.AcademicDegreeResponseDto, error) {
 	academicDegree, err := s.academicDegreeRepo.FindAcademicDegreeByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -264,6 +281,18 @@ func (s *DocumentService) GetAcademicDegreeById(ctx context.Context, id string) 
 
 	return dto.AcademicDegreeToResponse(academicDegree), nil
 }
+
+func (s *DocumentService) GetAcademicDegreeByHolderDID(ctx context.Context, did string) (*dto.AcademicDegreeResponseDto, error) {
+	entity, err := s.academicDegreeRepo.FindAcademicDegreeByHolderDID(ctx, did)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.UserNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+	return dto.AcademicDegreeToResponse(entity), nil
+}
+
 func (s *DocumentService) GetAcademicDegreeByDegreeNumber(ctx context.Context, degreeNumber string) (*dto.AcademicDegreeResponseDto, error) {
 	academicDegree, err := s.academicDegreeRepo.FindAcademicDegreeByDegreeNumber(ctx, degreeNumber)
 
@@ -347,7 +376,7 @@ func (s *DocumentService) UpdateHealthInsurance(ctx context.Context, id string, 
 	return dto.HealthInsuranceToResponse(healthInsuranceUpdated), nil
 }
 
-func (s *DocumentService) RevokeHealthInsurance(ctx context.Context, id string, request *dto.HealthInsuranceRevokedRequestDto) error {
+func (s *DocumentService) RevokeHealthInsurance(ctx context.Context, id string, request *dto.HealthInsuranceOptionRequestDto) error {
 	healthInsurance, err := s.healthInsuranceRepo.FindHealthInsuranceByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -359,7 +388,7 @@ func (s *DocumentService) RevokeHealthInsurance(ctx context.Context, id string, 
 	return s.healthInsuranceRepo.UpdateHealthInsurance(ctx, healthInsurance, changes)
 }
 
-func (s *DocumentService) GetHealthInsuranceById(ctx context.Context, id string) (*dto.HealthInsuranceResponseDto, error) {
+func (s *DocumentService) GetHealthInsuranceByPublicId(ctx context.Context, id string) (*dto.HealthInsuranceResponseDto, error) {
 	healthInsurance, err := s.healthInsuranceRepo.FindHealthInsuranceByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -382,6 +411,17 @@ func (s *DocumentService) GetHealthInsuranceByInsuranceNumber(ctx context.Contex
 	}
 
 	return dto.HealthInsuranceToResponse(healthInsurance), nil
+}
+
+func (s *DocumentService) GetHealthInsuranceByHolderDID(ctx context.Context, did string) (*dto.HealthInsuranceResponseDto, error) {
+	entity, err := s.healthInsuranceRepo.FindHealthInsuranceByHolderDID(ctx, did)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.UserNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+	return dto.HealthInsuranceToResponse(entity), nil
 }
 
 func (s *DocumentService) GetHealthInsurances(ctx context.Context) ([]*dto.HealthInsuranceResponseDto, error) {
@@ -451,7 +491,7 @@ func (s *DocumentService) UpdateDriverLicense(ctx context.Context, id string, re
 	return dto.DriverLicenseToResponse(driverLicenseUpdated), nil
 }
 
-func (s *DocumentService) RevokeDriverLicense(ctx context.Context, id string, request *dto.DriverLicenseRevokedRequestDto) error {
+func (s *DocumentService) RevokeDriverLicense(ctx context.Context, id string, request *dto.DriverLicenseOptionRequestDto) error {
 	driverLicense, err := s.driverLicenseRepo.FindDriverLicenseByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -463,7 +503,7 @@ func (s *DocumentService) RevokeDriverLicense(ctx context.Context, id string, re
 	return s.driverLicenseRepo.UpdateDriverLicense(ctx, driverLicense, changes)
 }
 
-func (s *DocumentService) GetDriverLicenseById(ctx context.Context, id string) (*dto.DriverLicenseResponseDto, error) {
+func (s *DocumentService) GetDriverLicenseByPublicId(ctx context.Context, id string) (*dto.DriverLicenseResponseDto, error) {
 	driverLicense, err := s.driverLicenseRepo.FindDriverLicenseByPublicId(ctx, id)
 
 	if err != nil {
@@ -487,6 +527,17 @@ func (s *DocumentService) GetDriverLicenseByLicenseNumber(ctx context.Context, l
 	}
 
 	return dto.DriverLicenseToResponse(driverLicense), nil
+}
+
+func (s *DocumentService) GetDriverLicenseByHolderDID(ctx context.Context, did string) (*dto.DriverLicenseResponseDto, error) {
+	entity, err := s.driverLicenseRepo.FindDriverLicenseByHolderDID(ctx, did)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.UserNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+	return dto.DriverLicenseToResponse(entity), nil
 }
 
 func (s *DocumentService) GetDriverLicenses(ctx context.Context) ([]*dto.DriverLicenseResponseDto, error) {
@@ -560,7 +611,7 @@ func (s *DocumentService) UpdatePassport(ctx context.Context, id string, request
 	return dto.PassportToResponse(passportUpdated), nil
 }
 
-func (s *DocumentService) RevokePassport(ctx context.Context, id string, request *dto.PassportRevokedRequestDto) error {
+func (s *DocumentService) RevokePassport(ctx context.Context, id string, request *dto.PassportOptionRequestDto) error {
 	passport, err := s.passportRepo.FindPassportByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -572,7 +623,7 @@ func (s *DocumentService) RevokePassport(ctx context.Context, id string, request
 	return s.passportRepo.UpdatePassport(ctx, passport, changes)
 }
 
-func (s *DocumentService) GetPassportById(ctx context.Context, id string) (*dto.PassportResponseDto, error) {
+func (s *DocumentService) GetPassportByPublicId(ctx context.Context, id string) (*dto.PassportResponseDto, error) {
 	passport, err := s.passportRepo.FindPassportByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -596,9 +647,19 @@ func (s *DocumentService) GetPassportByPassportNumber(ctx context.Context, passp
 	return dto.PassportToResponse(passport), nil
 }
 
+func (s *DocumentService) GetPassportByHolderDID(ctx context.Context, did string) (*dto.PassportResponseDto, error) {
+	entity, err := s.passportRepo.FindPassportByHolderDID(ctx, did)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &constant.UserNotFound
+		}
+		return nil, &constant.InternalServer
+	}
+	return dto.PassportToResponse(entity), nil
+}
+
 func (s *DocumentService) GetPassports(ctx context.Context) ([]*dto.PassportResponseDto, error) {
 	passports, err := s.passportRepo.FindAllPassports(ctx)
-
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.PassportNotFound

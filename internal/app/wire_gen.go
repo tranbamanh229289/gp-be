@@ -32,11 +32,11 @@ func InitializeApplication() (App, error) {
 	if err != nil {
 		return App{}, err
 	}
-	redisCache, err := redis.NewCache(configConfig, zapLogger)
+	postgresDB, err := postgres.NewDB(configConfig, zapLogger)
 	if err != nil {
 		return App{}, err
 	}
-	postgresDB, err := postgres.NewDB(configConfig, zapLogger)
+	redisCache, err := redis.NewCache(configConfig, zapLogger)
 	if err != nil {
 		return App{}, err
 	}
@@ -54,7 +54,7 @@ func InitializeApplication() (App, error) {
 	if err != nil {
 		return App{}, err
 	}
-	authZkHandler := handler.NewAuthZkHandler(zapLogger, iAuthZkService)
+	authZkHandler := handler.NewAuthZkHandler(configConfig, zapLogger, iAuthZkService)
 	iCitizenIdentityRepository := repository.NewCitizenIdentityRepository(postgresDB, zapLogger)
 	iAcademicDegreeRepository := repository.NewAcademicDegreeRepository(postgresDB, zapLogger)
 	iHealthInsuranceRepository := repository.NewHealthInsuranceRepository(postgresDB, zapLogger)
@@ -65,15 +65,16 @@ func InitializeApplication() (App, error) {
 	iCredentialRequestRepository := repository.NewCredentialRequestRepository(postgresDB)
 	iVerifiableCredentialRepository := repository.NewVerifiableCredentialRepository(postgresDB, configConfig)
 	iSchemaRepository := repository.NewSchemaRepository(postgresDB)
-	iCredentialService := service.NewCredentialService(configConfig, iIdentityService, iCredentialRequestRepository, iVerifiableCredentialRepository, iSchemaRepository)
+	iCredentialService := service.NewCredentialService(configConfig, iIdentityService, iDocumentService, iCredentialRequestRepository, iVerifiableCredentialRepository, iSchemaRepository)
 	credentialHandler := handler.NewCredentialHandler(iCredentialService)
 	pinata := ipfs.NewPinata(configConfig)
-	iSchemaService := service.NewSchemaService(configConfig, pinata, iIdentityRepository, iSchemaRepository)
+	iSchemaAttributeRepository := repository.NewSchemaAttributeRepository(configConfig, postgresDB)
+	iSchemaService := service.NewSchemaService(configConfig, pinata, iIdentityRepository, iSchemaRepository, iSchemaAttributeRepository)
 	schemaHandler := handler.NewSchemaHandler(iSchemaService)
 	iProofRepository := repository.NewProofRepository(postgresDB)
 	iProofService := service.NewProofService(configConfig, zapLogger, iVerifierService, iIdentityRepository, iSchemaRepository, iProofRepository)
 	proofHandler := handler.NewProofHandler(iProofService)
-	routerRouter := router.NewRouter(authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler)
+	routerRouter := router.NewRouter(postgresDB, authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler, iAuthZkService)
 	middlewareMiddleware := middleware.NewMiddleware(configConfig, zapLogger)
 	server := NewServer(configConfig, zapLogger)
 	app := App{

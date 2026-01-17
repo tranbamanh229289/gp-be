@@ -3,6 +3,7 @@ package repository
 import (
 	"be/internal/domain/schema"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"context"
 
 	shell "github.com/ipfs/go-ipfs-api"
@@ -45,29 +46,38 @@ func (r *SchemaRepository) FindSchemaByContextURL(ctx context.Context, url strin
 
 func (r *SchemaRepository) FindAllSchemas(ctx context.Context) ([]*schema.Schema, error) {
 	var entities []*schema.Schema
-	if err := r.db.GetGormDB().WithContext(ctx).Preload("SchemaAttributes").Find(&entities).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Issuer").Preload("SchemaAttributes").Find(&entities).Error; err != nil {
 		return nil, err
 	}
 	return entities, nil
 }
 
 func (r *SchemaRepository) CreateSchema(ctx context.Context, entity *schema.Schema) (*schema.Schema, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
-		return nil, err
-	}
-	return entity, nil
-}
+	db := helper.WithTx(ctx, r.db.GetGormDB())
 
-func (r *SchemaRepository) SaveSchema(ctx context.Context, entity *schema.Schema) (*schema.Schema, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(entity).Error; err != nil {
+	if err := db.Omit("SchemaAttributes").Create(entity).Error; err != nil {
 		return nil, err
 	}
+
+	if len(entity.SchemaAttributes) > 0 {
+		for i := range entity.SchemaAttributes {
+			entity.SchemaAttributes[i].SchemaID = entity.ID
+		}
+
+		if err := db.Create(&entity.SchemaAttributes).Error; err != nil {
+			return nil, err
+		}
+	}
+
 	return entity, nil
 }
 
 func (r *SchemaRepository) UpdateSchema(ctx context.Context, entity *schema.Schema, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+
+	if err := db.Omit("SchemaAttributes").Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
+
 	return nil
 }

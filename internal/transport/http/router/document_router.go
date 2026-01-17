@@ -1,13 +1,20 @@
 package router
 
 import (
+	"be/internal/shared/constant"
 	"be/internal/transport/http/handler"
+	"be/internal/transport/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupDocumentRouter(apiGroup *gin.RouterGroup, documentHandler *handler.DocumentHandler) {
+func (r *Router) SetupDocumentRouter(apiGroup *gin.RouterGroup, documentHandler *handler.DocumentHandler) {
 	credentialGroup := apiGroup.Group("documents")
+	credentialGroup.Use(middleware.AuthenticateMiddleware(r.authZkService))
+	credentialGroup.Use(middleware.AuthorizeMiddleware([]constant.IdentityRole{constant.IdentityIssuerRole}))
+
+	credentialGroup.GET("/:did", documentHandler.GetDocumentByHolderDID)
+
 	citizenIdentityGroup := credentialGroup.Group("citizen_identity")
 	academicDegreeGroup := credentialGroup.Group("academic_degree")
 	healthInsuranceGroup := credentialGroup.Group("health_insurance")

@@ -4,6 +4,7 @@ CREATE TABLE schemas (
     id BIGSERIAL PRIMARY KEY,
     public_id UUID UNIQUE NOT NULL DEFAULT gen_random_uuid(),
     issuer_did VARCHAR(255) NOT NULL CHECK (issuer_did LIKE 'did:%') REFERENCES identities(did) ON UPDATE CASCADE ON DELETE RESTRICT,
+    document_type VARCHAR(255) NOT NULL DEFAULT 'other' CHECK(document_type IN ('other', 'citizen_identity', 'academic_degree', 'health_insurance', 'driver_license', 'passport')),
     hash VARCHAR(128) NOT NULL,
     type VARCHAR(255) NOT NULL,
     version VARCHAR(64) NOT NULL,
@@ -19,6 +20,13 @@ CREATE TABLE schemas (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
    );
+
+CREATE INDEX idx_schemas_public_id ON schemas(public_id);
+CREATE INDEX idx_schemas_issuer_did ON schemas(issuer_did);
+CREATE INDEX idx_schemas_hash ON schemas(hash);
+CREATE INDEX idx_schemas_context_url ON schemas(context_url);
+CREATE INDEX idx_schemas_schema_url ON schemas(schema_url);
+
 
 CREATE TABLE schema_attributes (
     id                  SERIAL PRIMARY KEY,
@@ -41,3 +49,6 @@ CREATE TABLE schema_attributes (
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at          TIMESTAMPTZ
 );
+
+CREATE INDEX idx_schema_attributes_public_id ON schema_attributes(public_id);
+CREATE INDEX idx_schema_attributes_schema_id ON schema_attributes(schema_id);

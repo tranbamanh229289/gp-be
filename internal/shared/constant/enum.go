@@ -21,108 +21,116 @@ const (
 type IdentityRole string
 
 const (
-	IdentityHolderRole   = "holder"
-	IdentityVerifierRole = "verifier"
-	IdentityIssuerRole   = "issuer"
+	IdentityHolderRole   IdentityRole = "holder"
+	IdentityVerifierRole IdentityRole = "verifier"
+	IdentityIssuerRole   IdentityRole = "issuer"
 )
 
 // Document
 type DocumentType string
 
 const (
-	CitizenIdentity = "citizen_identity"
-	AcademicDegree  = "academic_degree"
-	HealthInsurance = "health_insurance"
-	DriverLicense   = "driver_license"
-	Passport        = "passport"
+	CitizenIdentity DocumentType = "citizen_identity"
+	AcademicDegree  DocumentType = "academic_degree"
+	HealthInsurance DocumentType = "health_insurance"
+	DriverLicense   DocumentType = "driver_license"
+	Passport        DocumentType = "passport"
 )
 
 type Gender string
 
 const (
-	MaleGender   = "male"
-	FemaleGender = "female"
-	OtherGender  = "other"
+	MaleGender   Gender = "male"
+	FemaleGender Gender = "female"
+	OtherGender  Gender = "other"
 )
 
 type DegreeType string
 
 const (
-	BachelorDegreeType           = "bachelor"
-	MasterDegreeType             = "master"
-	PhDDegreeType                = "phd"
-	AssociateProfessorDegreeType = "associate_professor"
-	FullProfessorDegreeType      = "full_professor"
+	BachelorDegreeType           DegreeType = "bachelor"
+	MasterDegreeType             DegreeType = "master"
+	PhDDegreeType                DegreeType = "phd"
+	AssociateProfessorDegreeType DegreeType = "associate_professor"
+	FullProfessorDegreeType      DegreeType = "full_professor"
 )
 
 type Classification string
 
 const (
-	ExcellentClassification = "excellent"
-	VeryGoodClassification  = "very_good"
-	GoodClassification      = "good"
-	AverageClassification   = "average"
-	PassClassification      = "pass"
+	ExcellentClassification Classification = "excellent"
+	VeryGoodClassification  Classification = "very_good"
+	GoodClassification      Classification = "good"
+	AverageClassification   Classification = "average"
+	PassClassification      Classification = "pass"
 )
 
 type DocumentStatus string
 
 const (
-	DocumentActiveStatus  = "active"
-	DocumentRevokeStatus  = "revoke"
-	DocumentExpiredStatus = "expired"
+	DocumentActiveStatus  DocumentStatus = "active"
+	DocumentRevokeStatus  DocumentStatus = "revoke"
+	DocumentExpiredStatus DocumentStatus = "expired"
 )
 
 type PassportType string
 
 const (
-	PassportOrdinaryType   = "ordinary"
-	PassportDiplomaticType = "diplomatic"
-	PassportOfficialType   = "official"
+	PassportOrdinaryType   PassportType = "ordinary"
+	PassportDiplomaticType PassportType = "diplomatic"
+	PassportOfficialType   PassportType = "official"
 )
 
 // proof
+type ProofType string
+
+const (
+	BjjSignature2021           ProofType = "BjjSignature2021"
+	Iden3SparseMerkleTreeProof ProofType = "Iden3SparseMerkleTreeProof"
+	Null                       ProofType = "null"
+)
+
 type ProofRequestStatus string
 
 const (
-	ProofRequestActiveStatus    = "active"
-	ProofRequestExpiredStatus   = "expired"
-	ProofRequestCancelledStatus = "cancelled"
+	ProofRequestActiveStatus    ProofRequestStatus = "active"
+	ProofRequestExpiredStatus   ProofRequestStatus = "expired"
+	ProofRequestCancelledStatus ProofRequestStatus = "cancelled"
 )
 
 type ProofResponseStatus string
 
 const (
-	ProofResponsePendingStatus = "pending"
-	ProofResponseSuccessStatus = "success"
-	ProofResponseFailedStatus  = "failed"
+	ProofResponsePendingStatus ProofResponseStatus = "pending"
+	ProofResponseSuccessStatus ProofResponseStatus = "success"
+	ProofResponseFailedStatus  ProofResponseStatus = "failed"
 )
 
 // verifiable credential
-type VerifiableCredentialType string
+type VerifiableCredentialStatus string
 
 const (
-	VerifiableCredentialNotSignedStatus = "notSigned"
-	VerifiableCredentialIssuedStatus    = "issued"
-	VerifiableCredentialRevokedStatus   = "revoked"
-	VerifiableCredentialExpiredStatus   = "expired"
+	VerifiableCredentialNotSignedStatus VerifiableCredentialStatus = "notSigned"
+	VerifiableCredentialIssuedStatus    VerifiableCredentialStatus = "issued"
+	VerifiableCredentialRevokedStatus   VerifiableCredentialStatus = "revoked"
+	VerifiableCredentialExpiredStatus   VerifiableCredentialStatus = "expired"
 )
 
 // credential request
 type CredentialRequestStatus string
 
 const (
-	CredentialRequestPendingStatus  = "pending"
-	CredentialRequestApprovedStatus = "approved"
-	CredentialRequestRejectedStatus = "rejected"
+	CredentialRequestPendingStatus  CredentialRequestStatus = "pending"
+	CredentialRequestApprovedStatus CredentialRequestStatus = "approved"
+	CredentialRequestRejectedStatus CredentialRequestStatus = "rejected"
 )
 
 // schema
-type SchemaType string
+type SchemaStatus string
 
 const (
-	SchemaActiveStatus = "active"
-	SchemaRevokeStatus = "revoked"
+	SchemaActiveStatus SchemaStatus = "active"
+	SchemaRevokeStatus SchemaStatus = "revoked"
 )
 
 // Slot
@@ -131,6 +139,17 @@ type Slot string
 const (
 	SlotIndexA Slot = "slotIndexA"
 	SlotIndexB Slot = "slotIndexB"
-	SlotDataA  Slot = "slotDataA"
-	SlotDataB  Slot = "slotDataB"
+	SlotValueA Slot = "slotValueA"
+	SlotValueB Slot = "slotValueB"
+)
+
+type AttributeType string
+
+const (
+	AttributeStringType  AttributeType = "string"
+	AttributeNumberType  AttributeType = "number"
+	AttributeIntegerType AttributeType = "integer"
+	AttributeBooleanType AttributeType = "boolean"
+	AttributeObjectType  AttributeType = "object"
+	AttributeArrayType   AttributeType = "array"
 )

@@ -16,4 +16,9 @@ CREATE TABLE academic_degrees (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ 
-)
+);
+
+CREATE INDEX idx_academic_degrees_public_id ON academic_degrees(public_id);
+CREATE INDEX idx_academic_degrees_degree_number ON academic_degrees(degree_number);
+CREATE INDEX idx_academic_degrees_holder_did ON academic_degrees(holder_did);
+CREATE INDEX idx_academic_degrees_issuer_did ON academic_degrees(issuer_did);

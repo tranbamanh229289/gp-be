@@ -2,91 +2,92 @@ package dto
 
 import (
 	"be/internal/domain/document"
+	"be/internal/shared/constant"
 	"time"
 )
 
 // Citizen Identity
 type CitizenIdentityCreatedRequestDto struct {
-	FirstName    string    `json:"firstName"`
-	LastName     string    `json:"lastName"`
-	Gender       string    `json:"gender"`
-	DateOfBirth  time.Time `json:"dateOfBirth"`
-	PlaceOfBirth string    `json:"placeOfBirth"`
-	IssueDate    time.Time `json:"issueDate"`
-	ExpiryDate   time.Time `json:"expiryDate"`
-	HolderDID    string    `json:"holderDID"`
-	IssuerDID    string    `json:"issuerDID"`
+	FirstName    string          `json:"firstName"`
+	LastName     string          `json:"lastName"`
+	Gender       constant.Gender `json:"gender"`
+	DateOfBirth  time.Time       `json:"dateOfBirth"`
+	PlaceOfBirth string          `json:"placeOfBirth"`
+	IssueDate    time.Time       `json:"issueDate"`
+	ExpiryDate   time.Time       `json:"expiryDate"`
+	HolderDID    string          `json:"holderDID"`
+	IssuerDID    string          `json:"issuerDID"`
 }
 
 type CitizenIdentityUpdatedRequestDto struct {
-	FirstName    string    `json:"firstName,omitempty"`
-	LastName     string    `json:"lastName,omitempty"`
-	Gender       string    `json:"gender,omitempty"`
-	DateOfBirth  time.Time `json:"dateOfBirth,omitempty"`
-	PlaceOfBirth string    `json:"placeOfBirth,omitempty"`
-	IssueDate    time.Time `json:"issueDate,omitempty"`
-	ExpiryDate   time.Time `json:"expiryDate,omitempty"`
+	FirstName    string          `json:"firstName,omitempty"`
+	LastName     string          `json:"lastName,omitempty"`
+	Gender       constant.Gender `json:"gender,omitempty"`
+	DateOfBirth  time.Time       `json:"dateOfBirth,omitempty"`
+	PlaceOfBirth string          `json:"placeOfBirth,omitempty"`
+	IssueDate    time.Time       `json:"issueDate,omitempty"`
+	ExpiryDate   time.Time       `json:"expiryDate,omitempty"`
 }
 
-type CitizenIdentityRevokedRequestDto struct {
+type CitizenIdentityOptionRequestDto struct {
 	Status string `json:"status"`
 }
 
 type CitizenIdentityResponseDto struct {
-	PublicID     string    `json:"id"`
-	IDNumber     string    `json:"idNumber"`
-	Status       string    `json:"status"`
-	FirstName    string    `json:"firstName"`
-	LastName     string    `json:"lastName"`
-	Gender       string    `json:"gender"`
-	DateOfBirth  time.Time `json:"dateOfBirth"`
-	PlaceOfBirth string    `json:"placeOfBirth"`
-	IssueDate    time.Time `json:"issueDate"`
-	ExpiryDate   time.Time `json:"expiryDate"`
-	HolderDID    string    `json:"holderDID"`
-	IssuerDID    string    `json:"issuerDID"`
+	PublicID     string                  `json:"id"`
+	IDNumber     string                  `json:"idNumber"`
+	Status       constant.DocumentStatus `json:"status"`
+	FirstName    string                  `json:"firstName"`
+	LastName     string                  `json:"lastName"`
+	Gender       constant.Gender         `json:"gender"`
+	DateOfBirth  time.Time               `json:"dateOfBirth"`
+	PlaceOfBirth string                  `json:"placeOfBirth"`
+	IssueDate    time.Time               `json:"issueDate"`
+	ExpiryDate   time.Time               `json:"expiryDate"`
+	HolderDID    string                  `json:"holderDID"`
+	IssuerDID    string                  `json:"issuerDID"`
 }
 
 // Academic Degree
 type AcademicDegreeCreatedRequestDto struct {
-	DegreeType     string    `json:"degreeType"`
-	Major          string    `json:"major"`
-	University     string    `json:"university"`
-	GraduateYear   uint      `json:"graduateYear"`
-	GPA            float32   `json:"gpa"`
-	Classification string    `json:"classification"`
-	IssueDate      time.Time `json:"issueDate"`
-	HolderDID      string    `json:"holderDID"`
-	IssuerDID      string    `json:"issuerDID"`
+	DegreeType     constant.DegreeType `json:"degreeType"`
+	Major          string              `json:"major"`
+	University     string              `json:"university"`
+	GraduateYear   uint                `json:"graduateYear"`
+	GPA            float32             `json:"gpa"`
+	Classification string              `json:"classification"`
+	IssueDate      time.Time           `json:"issueDate"`
+	HolderDID      string              `json:"holderDID"`
+	IssuerDID      string              `json:"issuerDID"`
 }
 
 type AcademicDegreeUpdatedRequestDto struct {
-	DegreeType     string    `json:"degreeType,omitempty"`
-	Major          string    `json:"major,omitempty"`
-	University     string    `json:"university,omitempty"`
-	GraduateYear   uint      `json:"graduateYear,omitempty"`
-	GPA            float32   `json:"gpa,omitempty"`
-	Classification string    `json:"classification,omitempty"`
-	IssueDate      time.Time `json:"issueDate,omitempty"`
+	DegreeType     constant.DegreeType `json:"degreeType,omitempty"`
+	Major          string              `json:"major,omitempty"`
+	University     string              `json:"university,omitempty"`
+	GraduateYear   uint                `json:"graduateYear,omitempty"`
+	GPA            float32             `json:"gpa,omitempty"`
+	Classification string              `json:"classification,omitempty"`
+	IssueDate      time.Time           `json:"issueDate,omitempty"`
 }
 
-type AcademicDegreeRevokedRequestDto struct {
+type AcademicDegreeOptionRequestDto struct {
 	Status string `json:"status"`
 }
 
 type AcademicDegreeResponseDto struct {
-	PublicID       string    `json:"id"`
-	DegreeNumber   string    `json:"degreeNumber"`
-	Status         string    `json:"status"`
-	DegreeType     string    `json:"degreeType"`
-	Major          string    `json:"major"`
-	University     string    `json:"university"`
-	GraduateYear   uint      `json:"graduateYear"`
-	GPA            float32   `json:"gpa"`
-	Classification string    `json:"classification"`
-	IssueDate      time.Time `json:"issueDate"`
-	HolderDID      string    `json:"holderDID"`
-	IssuerDID      string    `json:"issuerDID"`
+	PublicID       string                  `json:"id"`
+	DegreeNumber   string                  `json:"degreeNumber"`
+	Status         constant.DocumentStatus `json:"status"`
+	DegreeType     constant.DegreeType     `json:"degreeType"`
+	Major          string                  `json:"major"`
+	University     string                  `json:"university"`
+	GraduateYear   uint                    `json:"graduateYear"`
+	GPA            float32                 `json:"gpa"`
+	Classification string                  `json:"classification"`
+	IssueDate      time.Time               `json:"issueDate"`
+	HolderDID      string                  `json:"holderDID"`
+	IssuerDID      string                  `json:"issuerDID"`
 }
 
 // Health Insurance
@@ -106,20 +107,20 @@ type HealthInsuranceUpdatedRequestDto struct {
 	ExpiryDate    time.Time `json:"expiryDate,omitempty"`
 }
 
-type HealthInsuranceRevokedRequestDto struct {
+type HealthInsuranceOptionRequestDto struct {
 	Status string `json:"status"`
 }
 
 type HealthInsuranceResponseDto struct {
-	PublicID        string    `json:"id"`
-	InsuranceNumber string    `json:"insuranceNumber"`
-	Status          string    `json:"status"`
-	InsuranceType   string    `json:"insuranceType"`
-	Hospital        string    `json:"hospital"`
-	StartDate       time.Time `json:"startDate"`
-	ExpiryDate      time.Time `json:"expiryDate"`
-	HolderDID       string    `json:"holderDID"`
-	IssuerDID       string    `json:"issuerDID"`
+	PublicID        string                  `json:"id"`
+	InsuranceNumber string                  `json:"insuranceNumber"`
+	Status          constant.DocumentStatus `json:"status"`
+	InsuranceType   string                  `json:"insuranceType"`
+	Hospital        string                  `json:"hospital"`
+	StartDate       time.Time               `json:"startDate"`
+	ExpiryDate      time.Time               `json:"expiryDate"`
+	HolderDID       string                  `json:"holderDID"`
+	IssuerDID       string                  `json:"issuerDID"`
 }
 
 // Driver License
@@ -132,62 +133,62 @@ type DriverLicenseCreatedRequestDto struct {
 }
 
 type DriverLicenseUpdatedRequestDto struct {
-	Point      int       `json:"point,omitempty"`
+	Point      uint      `json:"point,omitempty"`
 	Class      string    `json:"class,omitempty"`
 	IssueDate  time.Time `json:"issueDate,omitempty"`
 	ExpiryDate time.Time `json:"expiryDate,omitempty"`
 }
 
-type DriverLicenseRevokedRequestDto struct {
+type DriverLicenseOptionRequestDto struct {
 	Status string `json:"status"`
 }
 
 type DriverLicenseResponseDto struct {
-	PublicID      string    `json:"id"`
-	LicenseNumber string    `json:"licenseNumber"`
-	Status        string    `json:"status"`
-	Point         int       `json:"point"`
-	Class         string    `json:"class"`
-	IssueDate     time.Time `json:"issueDate"`
-	ExpiryDate    time.Time `json:"expiryDate"`
-	HolderDID     string    `json:"holderDID"`
-	IssuerDID     string    `json:"issuerDID"`
+	PublicID      string                  `json:"id"`
+	LicenseNumber string                  `json:"licenseNumber"`
+	Status        constant.DocumentStatus `json:"status"`
+	Point         uint                    `json:"point"`
+	Class         string                  `json:"class"`
+	IssueDate     time.Time               `json:"issueDate"`
+	ExpiryDate    time.Time               `json:"expiryDate"`
+	HolderDID     string                  `json:"holderDID"`
+	IssuerDID     string                  `json:"issuerDID"`
 }
 
 // Passport
 type PassportCreatedRequestDto struct {
-	PassportType string    `json:"passportType"`
-	Nationality  string    `json:"nationality"`
-	MRZ          string    `json:"mrz"`
-	IssueDate    time.Time `json:"issueDate"`
-	ExpiryDate   time.Time `json:"expiryDate"`
-	HolderDID    string    `json:"holderDID"`
-	IssuerDID    string    `json:"issuerDID"`
+	PassportType constant.PassportType `json:"passportType"`
+	Nationality  string                `json:"nationality"`
+	MRZ          string                `json:"mrz"`
+	IssueDate    time.Time             `json:"issueDate"`
+	ExpiryDate   time.Time             `json:"expiryDate"`
+	HolderDID    string                `json:"holderDID"`
+	IssuerDID    string                `json:"issuerDID"`
 }
 
 type PassportUpdatedRequestDto struct {
-	PassportType string    `json:"passportType,omitempty"`
-	Nationality  string    `json:"nationality,omitempty"`
-	MRZ          string    `json:"mrz,omitempty"`
-	IssueDate    time.Time `json:"issueDate,omitempty"`
-	ExpiryDate   time.Time `json:"expiryDate,omitempty"`
+	PassportType constant.PassportType `json:"passportType,omitempty"`
+	Nationality  string                `json:"nationality,omitempty"`
+	MRZ          string                `json:"mrz,omitempty"`
+	IssueDate    time.Time             `json:"issueDate,omitempty"`
+	ExpiryDate   time.Time             `json:"expiryDate,omitempty"`
 }
 
-type PassportRevokedRequestDto struct {
+type PassportOptionRequestDto struct {
 	Status string `json:"status"`
 }
 
 type PassportResponseDto struct {
-	PublicID       string    `json:"id"`
-	PassportNumber string    `json:"passportNumber"`
-	Status         string    `json:"status"`
-	PassportType   string    `json:"passportType"`
-	Nationality    string    `json:"nationality"`
-	MRZ            string    `json:"mrz"`
-	IssueDate      time.Time `json:"issueDate"`
-	ExpiryDate     time.Time `json:"expiryDate"`
-	HolderDID      string    `json:"holderDID"`
-	IssuerDID      string    `json:"issuerDID"`
+	PublicID       string                  `json:"id"`
+	PassportNumber string                  `json:"passportNumber"`
+	Status         constant.DocumentStatus `json:"status"`
+	PassportType   constant.PassportType   `json:"passportType"`
+	Nationality    string                  `json:"nationality"`
+	MRZ            string                  `json:"mrz"`
+	IssueDate      time.Time               `json:"issueDate"`
+	ExpiryDate     time.Time               `json:"expiryDate"`
+	HolderDID      string                  `json:"holderDID"`
+	IssuerDID      string                  `json:"issuerDID"`
 }
 
 // Convert

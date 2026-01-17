@@ -82,8 +82,8 @@ kafka:
 
 jwt:
     secret: ""
-    access_token_ttl: 100
-    refresh_token_ttl: 100
+    access_token_ttl: 60
+    refresh_token_ttl: 600
 
 blockchain:
     eth:
@@ -116,8 +116,4 @@ ipfs:
         api_secret_key: ""
         jwt_key: ""
         endpoint: "https://api.pinata.cloud/pinning"
-        gateway_url: "https://example.com/schemas/"
-
-iden3:
-    verifier:
-        private_key: "fcf0e538b43bbabd4b9daba74689e2122cc9fedc5e7ec91c77aa57679cec6744"
+        gateway_url: "https://tan-electoral-unicorn-322.mypinata.cloud/ipfs/"

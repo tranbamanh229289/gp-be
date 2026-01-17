@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizeMiddleware(allowedRoles ...constant.UserRole) gin.HandlerFunc {
+func AuthorizeMiddleware(allowedRoles []constant.IdentityRole) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, existed := c.Get("user")
 		if !existed {
@@ -17,7 +17,7 @@ func AuthorizeMiddleware(allowedRoles ...constant.UserRole) gin.HandlerFunc {
 			return
 		}
 
-		claims, ok := user.(*dto.Claims)
+		claims, ok := user.(*dto.ZKClaims)
 		if !ok {
 			response.RespondError(c, &constant.InternalServer)
 			c.Abort()

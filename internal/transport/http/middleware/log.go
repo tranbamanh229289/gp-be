@@ -1,14 +1,15 @@
 package middleware
 
 import (
+	"be/pkg/logger"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
 
-func (m *Middleware) LogMiddleware(engine *gin.Engine) {
-	middleware := func(ctx *gin.Context) {
+func LogMiddleware(logger *logger.ZapLogger) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 		startTime := time.Now().UTC()
 		path := ctx.Request.URL.Path
 		query := ctx.Request.URL.RawQuery
@@ -23,7 +24,7 @@ func (m *Middleware) LogMiddleware(engine *gin.Engine) {
 		endTime := time.Now().UTC()
 		status := ctx.Writer.Status()
 
-		m.logger.Info("HTTP request",
+		logger.Info("HTTP request",
 			zap.String("method", method),
 			zap.String("path", path),
 			zap.Int("status", status),
@@ -31,5 +32,4 @@ func (m *Middleware) LogMiddleware(engine *gin.Engine) {
 			zap.Time("end_time", endTime),
 		)
 	}
-	engine.Use(middleware)
 }

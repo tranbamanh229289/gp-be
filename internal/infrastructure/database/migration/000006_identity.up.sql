@@ -13,3 +13,6 @@ CREATE TABLE identities (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE INDEX idx_identities_public_id ON identities(public_id);
+CREATE INDEX idx_identities_did ON identities(did);

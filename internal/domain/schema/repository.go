@@ -19,13 +19,12 @@ type ISchemaRepository interface {
 	FindSchemaByHash(ctx context.Context, hash string) (*Schema, error)
 	FindSchemaByContextURL(ctx context.Context, hash string) (*Schema, error)
 	FindAllSchemas(ctx context.Context) ([]*Schema, error)
-	CreateSchema(ctx context.Context, entity *Schema) (*Schema, error)
-	SaveSchema(ctx context.Context, entity *Schema) (*Schema, error)
+	CreateSchema(ctx context.Context, schema *Schema) (*Schema, error)
 	UpdateSchema(ctx context.Context, entity *Schema, changes map[string]interface{}) error
 }
 
 type ISchemaAttributeRepository interface {
 	CreateSchemaAttributes(ctx context.Context, entities []*SchemaAttribute) ([]*SchemaAttribute, error)
-	FindSchemaAttributesBySchemaID(ctx context.Context, schemaID uint) ([]*SchemaAttribute, error)
-	UpdateAttributesBySchemaID(ctx context.Context, schemaID uint, change map[string]interface{}) error
+	FindSchemaAttributesBySchemaId(ctx context.Context, schemaId uint) ([]*SchemaAttribute, error)
+	UpdateAttributesBySchemaId(ctx context.Context, schemaId uint, change map[string]interface{}) error
 }

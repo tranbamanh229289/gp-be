@@ -4,6 +4,7 @@ import (
 	"be/internal/domain/document"
 	credential "be/internal/domain/document"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"be/pkg/logger"
 	"context"
 )
@@ -36,6 +37,14 @@ func (r *AcademicDegreeRepository) FindAcademicDegreeByDegreeNumber(ctx context.
 	return &entity, nil
 }
 
+func (r *AcademicDegreeRepository) FindAcademicDegreeByHolderDID(ctx context.Context, holderDID string) (*document.AcademicDegree, error) {
+	var entity document.AcademicDegree
+	if err := r.db.GetGormDB().WithContext(ctx).Where("holder_did = ?", holderDID).First(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
 func (r *AcademicDegreeRepository) FindAllAcademicDegrees(ctx context.Context) ([]*document.AcademicDegree, error) {
 	var entities []*credential.AcademicDegree
 	if err := r.db.GetGormDB().WithContext(ctx).Find(&entities).Error; err != nil {
@@ -45,21 +54,24 @@ func (r *AcademicDegreeRepository) FindAllAcademicDegrees(ctx context.Context) (
 }
 
 func (r *AcademicDegreeRepository) CreateAcademicDegree(ctx context.Context, entity *document.AcademicDegree) (*document.AcademicDegree, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *AcademicDegreeRepository) SaveAcademicDegree(ctx context.Context, entity *document.AcademicDegree) (*document.AcademicDegree, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Save(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *AcademicDegreeRepository) UpdateAcademicDegree(ctx context.Context, entity *credential.AcademicDegree, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

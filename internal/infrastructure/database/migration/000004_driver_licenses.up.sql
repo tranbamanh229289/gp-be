@@ -14,3 +14,8 @@ CREATE TABLE driver_licenses (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
 );
+
+CREATE INDEX idx_driver_licenses_public_id ON driver_licenses(public_id);
+CREATE INDEX idx_driver_licenses_license_number ON driver_licenses(license_number);
+CREATE INDEX idx_driver_licenses_holder_did ON driver_licenses(holder_did);
+CREATE INDEX idx_driver_licenses_issuer_did ON driver_licenses(issuer_did);

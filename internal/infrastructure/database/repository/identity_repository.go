@@ -3,6 +3,7 @@ package repository
 import (
 	"be/internal/domain/schema"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"context"
 )
 
@@ -57,14 +58,16 @@ func (r *IdentityRepository) FindAllIdentities(ctx context.Context) ([]*schema.I
 }
 
 func (r *IdentityRepository) CreateIdentity(ctx context.Context, entity *schema.Identity) (*schema.Identity, error) {
-	if err := r.db.GetGormDB().Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *IdentityRepository) UpdateIdentity(ctx context.Context, entity *schema.Identity, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

@@ -15,3 +15,8 @@ CREATE TABLE passports (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
 );
+
+CREATE INDEX idx_passports_public_id ON passports(public_id);
+CREATE INDEX idx_passports_passport_number ON passports(passport_number);
+CREATE INDEX idx_passports_holder_did ON passports(holder_did);
+CREATE INDEX idx_passports_issuer_did ON passports(issuer_did);

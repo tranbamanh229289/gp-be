@@ -46,9 +46,11 @@ func (state *IdentityState) AddClaim(ctx context.Context, claim *core.Claim) err
 		return fmt.Errorf("failed to get key and value: %w", err)
 	}
 	err = state.ClaimsTree.Add(ctx, hi, hv)
+
 	if err != nil {
 		return fmt.Errorf("failed to add claim: %w", err)
 	}
+
 	claimsRoot := state.ClaimsTree.Root()
 	err = state.RootsTree.Add(ctx, claimsRoot.BigInt(), big.NewInt(1))
 	return nil

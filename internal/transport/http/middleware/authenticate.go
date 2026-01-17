@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthenticateMiddleware(authService service.IAuthJWTService) gin.HandlerFunc {
+func AuthenticateMiddleware(authService service.IAuthZkService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.Request.Header.Get("Authorization")
 		if authHeader == "" {
@@ -27,15 +27,13 @@ func AuthenticateMiddleware(authService service.IAuthJWTService) gin.HandlerFunc
 
 		tokenString := parts[1]
 
-		claims, err := authService.VerifyToken(tokenString, constant.AccessToken)
+		claims, err := authService.VerifyZKToken(tokenString, constant.AccessToken)
 		if err != nil {
 			response.RespondError(c, &constant.InvalidToken)
 			c.Abort()
 			return
 		}
-
-		c.Set("user_id", claims.ID)
-		c.Set("role", claims.ID)
+		c.Set("user", claims)
 
 		c.Next()
 	}

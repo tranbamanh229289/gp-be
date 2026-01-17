@@ -8,18 +8,21 @@ import (
 	"be/internal/transport/http/dto"
 	"be/pkg/logger"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/iden3/go-iden3-auth/v2/pubsignals"
+	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"gorm.io/gorm"
 )
 
 type IProofService interface {
 	CreateProofRequest(ctx context.Context, request *protocol.AuthorizationRequestMessage) (*dto.ProofRequestResponseDto, error)
-	GetProofRequests(ctx context.Context) ([]*dto.ProofRequestResponseDto, error)
+	GetProofRequests(ctx context.Context, claims *dto.ZKClaims) ([]*dto.ProofRequestResponseDto, error)
 	UpdateProofRequest(ctx context.Context, id string, request *dto.ProofRequestUpdatedRequestDto) error
 	CreateProofResponse(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error)
 	GetProofResponses(ctx context.Context) ([]*dto.ProofVerificationResponseDto, error)
@@ -61,19 +64,21 @@ func (s *ProofService) CreateProofRequest(
 		return nil, errors.New("required len scope = 1")
 	}
 
-	contextURL, ok := scopes[0].Query["context"]
-	if !ok {
-		return nil, errors.New("schema not found")
+	var proofQuery pubsignals.Query
+	queryBytes, err := json.Marshal(scopes[0].Query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal query: %w", err)
+	}
+	if err := json.Unmarshal(queryBytes, &proofQuery); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal query: %w", err)
 	}
 
-	schemaType, ok := scopes[0].Query["type"]
+	nullifierSessionId, ok := scopes[0].Params["nullifierSessionId"].(string)
 	if !ok {
-		return nil, errors.New("schema not found")
+		nullifierSessionId = ""
 	}
-	var allowedIssuers []string
-	allowedIssuers, ok = scopes[0].Query["allowedIssuers"].([]string)
 
-	schema, err := s.schemaRepo.FindSchemaByContextURL(ctx, contextURL.(string))
+	schema, err := s.schemaRepo.FindSchemaByContextURL(ctx, proofQuery.Context)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.SchemaNotFound
@@ -81,12 +86,11 @@ func (s *ProofService) CreateProofRequest(
 		return nil, &constant.InternalServer
 	}
 
-	if schemaType.(string) != schema.Type {
+	if proofQuery.Type != schema.Type {
 		return nil, errors.New("schema type not found")
 	}
 
-	verifierDID := request.From
-	_, err = s.identityRepo.FindIdentityByDID(ctx, verifierDID)
+	verifier, err := s.identityRepo.FindIdentityByDID(ctx, request.From)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.IdentityNotFound
@@ -95,21 +99,24 @@ func (s *ProofService) CreateProofRequest(
 	}
 
 	entity := &proof.ProofRequest{
-		PublicID:       uuid.New(),
-		ThreadID:       request.ThreadID,
-		VerifierDID:    request.From,
-		CallbackURL:    request.Body.CallbackURL,
-		Reason:         request.Body.Reason,
-		Message:        request.Body.Message,
-		ScopeID:        scopes[0].ID,
-		CircuitID:      scopes[0].CircuitID,
-		Params:         scopes[0].Params,
-		Query:          scopes[0].Query,
-		SchemaID:       schema.ID,
-		AllowedIssuers: allowedIssuers,
-		Status:         constant.ProofRequestActiveStatus,
-		ExpiresTime:    request.ExpiresTime,
-		CreatedTime:    request.CreatedTime,
+		PublicID:                 uuid.New(),
+		ThreadID:                 request.ThreadID,
+		VerifierDID:              request.From,
+		CallbackURL:              request.Body.CallbackURL,
+		Reason:                   request.Body.Reason,
+		Message:                  request.Body.Message,
+		ScopeID:                  scopes[0].ID,
+		CircuitID:                scopes[0].CircuitID,
+		AllowedIssuers:           proofQuery.AllowedIssuers,
+		SchemaID:                 schema.ID,
+		CredentialSubject:        proofQuery.CredentialSubject,
+		ProofType:                proofQuery.ProofType,
+		SkipClaimRevocationCheck: proofQuery.SkipClaimRevocationCheck,
+		GroupID:                  proofQuery.GroupID,
+		NullifierSession:         nullifierSessionId,
+		Status:                   constant.ProofRequestActiveStatus,
+		ExpiresTime:              request.ExpiresTime,
+		CreatedTime:              request.CreatedTime,
 	}
 	proofCreated, err := s.proofRepo.CreateProofRequest(ctx, entity)
 
@@ -117,11 +124,42 @@ func (s *ProofService) CreateProofRequest(
 		return nil, &constant.InternalServer
 	}
 
-	return dto.ToProofRequestResponseDto(proofCreated), nil
+	return &dto.ProofRequestResponseDto{
+		PublicID:                 proofCreated.PublicID.String(),
+		ThreadID:                 proofCreated.ThreadID,
+		VerifierDID:              proofCreated.VerifierDID,
+		VerifierName:             verifier.Name,
+		CallbackURL:              proofCreated.CallbackURL,
+		Reason:                   proofCreated.Reason,
+		Message:                  proofCreated.Message,
+		ScopeID:                  proofCreated.ScopeID,
+		CircuitID:                proofCreated.CircuitID,
+		AllowedIssuers:           proofCreated.AllowedIssuers,
+		CredentialSubject:        proofCreated.CredentialSubject,
+		SchemaID:                 schema.PublicID.String(),
+		Context:                  schema.ContextURL,
+		Type:                     schema.Type,
+		ProofType:                proofCreated.ProofType,
+		SkipClaimRevocationCheck: proofCreated.SkipClaimRevocationCheck,
+		GroupID:                  proofCreated.GroupID,
+		NullifierSession:         proofCreated.NullifierSession,
+		Status:                   proofCreated.Status,
+		ExpiresTime:              proofCreated.ExpiresTime,
+		CreatedTime:              proofCreated.CreatedTime,
+	}, nil
 }
 
-func (s *ProofService) GetProofRequests(ctx context.Context) ([]*dto.ProofRequestResponseDto, error) {
-	proofRequests, err := s.proofRepo.FindAllProofRequests(ctx)
+func (s *ProofService) GetProofRequests(ctx context.Context, claims *dto.ZKClaims) ([]*dto.ProofRequestResponseDto, error) {
+	var (
+		proofRequests []*proof.ProofRequest
+		err           error
+	)
+	if claims.Role != constant.IdentityIssuerRole {
+		proofRequests, err = s.proofRepo.FindAllProofRequests(ctx)
+	} else {
+		proofRequests, err = s.proofRepo.FindAllProofRequestsByVerifierDID(ctx, claims.DID)
+	}
+
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, &constant.ProofNotFound
@@ -150,9 +188,6 @@ func (s *ProofService) UpdateProofRequest(ctx context.Context, id string, reques
 }
 
 func (s *ProofService) CreateProofResponse(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error) {
-	if proofResponse.Body.Scope == nil || len(proofResponse.Body.Scope) == 0 {
-		return nil, errors.New("proof response scope is empty")
-	}
 
 	proofRequestEntity, err := s.proofRepo.FindProofRequestByThreadId(ctx, proofResponse.ThreadID)
 	if err != nil {
@@ -185,26 +220,18 @@ func (s *ProofService) CreateProofResponse(ctx context.Context, proofResponse *p
 		return nil, errors.New("verifier DID mismatch")
 	}
 	var proofRequest *protocol.AuthorizationRequestMessage = s.toAuthorizationRequest(proofRequestEntity)
-	var proofResponseEntity *proof.ProofResponse
 	err = s.verifier.VerifyAuthResponse(ctx, *proofResponse, *proofRequest)
 	if err != nil {
 		s.logger.Info(fmt.Sprintf("Verify Failed: %s", err))
-		proofResponseEntity = &proof.ProofResponse{
-			PublicID:  uuid.New(),
-			RequestID: proofRequestEntity.ID,
-			HolderDID: holderDID,
-			ThreadID:  proofRequest.ThreadID,
-		}
 	}
-	proofResponseEntity = &proof.ProofResponse{
+
+	proofResponseCreated, err := s.proofRepo.CreateProofResponse(ctx, &proof.ProofResponse{
 		PublicID:  uuid.New(),
 		RequestID: proofRequestEntity.ID,
 		HolderDID: holderDID,
-		ThreadID:  proofRequest.ThreadID,
 		Status:    constant.ProofResponseSuccessStatus,
-	}
+	})
 
-	proofResponseCreated, err := s.proofRepo.CreateProofResponse(ctx, proofResponseEntity)
 	return &dto.ProofVerificationResponseDto{
 		Status:     constant.ProofResponseSuccessStatus,
 		HolderDID:  holderDID,
@@ -228,7 +255,7 @@ func (s *ProofService) GetProofResponses(ctx context.Context) ([]*dto.ProofVerif
 		resp = append(resp, &dto.ProofVerificationResponseDto{
 			Status:     item.Status,
 			HolderDID:  item.HolderDID,
-			ThreadID:   item.ThreadID,
+			ThreadID:   item.ProofRequest.ThreadID,
 			VerifiedAt: item.CreatedAt,
 		})
 	}
@@ -236,9 +263,22 @@ func (s *ProofService) GetProofResponses(ctx context.Context) ([]*dto.ProofVerif
 }
 
 func (s *ProofService) toAuthorizationRequest(pr *proof.ProofRequest) *protocol.AuthorizationRequestMessage {
+	query := make(map[string]interface{})
+	params := make(map[string]interface{})
+	query["allowedIssuers"] = pr.AllowedIssuers
+	query["context"] = pr.Schema.ContextURL
+	query["type"] = pr.Schema.Type
+	query["credentialSubject"] = pr.CredentialSubject
+	query["proofType"] = pr.ProofType
+	query["skipClaimRevocationCheck"] = pr.SkipClaimRevocationCheck
+	query["groupId"] = pr.GroupID
+	params["nullifierSessionId"] = pr.NullifierSession
+
 	return &protocol.AuthorizationRequestMessage{
 		ID:       pr.ThreadID,
 		From:     pr.VerifierDID,
+		Typ:      packers.MediaTypePlainMessage,
+		Type:     protocol.AuthorizationRequestMessageType,
 		ThreadID: pr.ThreadID,
 		Body: protocol.AuthorizationRequestMessageBody{
 			CallbackURL: pr.CallbackURL,
@@ -248,11 +288,12 @@ func (s *ProofService) toAuthorizationRequest(pr *proof.ProofRequest) *protocol.
 				{
 					ID:        pr.ScopeID,
 					CircuitID: pr.CircuitID,
-					Query:     pr.Query,
-					Params:    pr.Params,
+					Query:     query,
+					Params:    params,
 				},
 			},
 		},
+
 		ExpiresTime: pr.ExpiresTime,
 		CreatedTime: pr.CreatedTime,
 	}

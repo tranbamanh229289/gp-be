@@ -1,23 +1,27 @@
 package router
 
 import (
+	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"be/internal/transport/http/handler"
+	"be/internal/transport/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupCredentialRouter(apiGroup *gin.RouterGroup, credentialHandler *handler.CredentialHandler) {
+func (r *Router) SetupCredentialRouter(apiGroup *gin.RouterGroup, db *postgres.PostgresDB, credentialHandler *handler.CredentialHandler) {
 	credentialGroup := apiGroup.Group("credentials")
-	credentialRequestGroup := credentialGroup.Group("request")
-	verifiableCredentialGroup := credentialGroup.Group("verifiable")
+	credentialGroup.Use(middleware.AuthenticateMiddleware(r.authZkService))
 
-	credentialRequestGroup.GET("", credentialHandler.GetCredentialRequests)
-	credentialRequestGroup.POST("", credentialHandler.CreateCredentialRequest)
-	credentialRequestGroup.PATCH("/:id", credentialHandler.UpdateCredentialRequest)
+	verifiableGroup := credentialGroup.Group("verifiable")
+	requestGroup := credentialGroup.Group("request")
 
-	verifiableCredentialGroup.GET("", credentialHandler.GetVerifiableCredentials)
-	verifiableCredentialGroup.GET("/:id", credentialHandler.GetVerifiableCredential)
-	verifiableCredentialGroup.PATCH("/:id", credentialHandler.UpdateVerifiableCredential)
-	verifiableCredentialGroup.PATCH("sign/:id", credentialHandler.SignVerifiableCredential)
-	verifiableCredentialGroup.POST("/:id", credentialHandler.IssueVerifiableCredential)
+	requestGroup.GET("", credentialHandler.GetCredentialRequests)
+	requestGroup.POST("", credentialHandler.CreateCredentialRequest)
+	requestGroup.PATCH("/:id", credentialHandler.UpdateCredentialRequest)
+
+	verifiableGroup.GET("", credentialHandler.GetVerifiableCredentials)
+	verifiableGroup.GET("/:id", credentialHandler.GetVerifiableCredentialById)
+	verifiableGroup.PATCH("/:id", credentialHandler.UpdateVerifiableCredential)
+	verifiableGroup.POST("/:id", helper.TxMiddleware(db.GetGormDB()), credentialHandler.IssueVerifiableCredential)
 }

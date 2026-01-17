@@ -3,6 +3,7 @@ package repository
 import (
 	"be/internal/domain/auth"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"be/pkg/logger"
 	"context"
 )
@@ -52,7 +53,8 @@ func (r *UserRepository) FindAllUsers(ctx context.Context) ([]*auth.User, error)
 }
 
 func (r *UserRepository) SaveUser(ctx context.Context, user *auth.User) (*auth.User, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(user).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Save(user).Error; err != nil {
 		return nil, err
 	}
 

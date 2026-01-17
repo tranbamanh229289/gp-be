@@ -26,7 +26,23 @@ func (h *ProofHandler) CreateProofRequest(c *gin.Context) {
 		response.RespondError(c, err)
 		return
 	}
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	if claims.DID != request.From {
+		response.RespondError(c, &constant.BadRequest)
+	}
+
 	res, err := h.proofService.CreateProofRequest(c.Request.Context(), &request)
+
 	if err != nil {
 		response.RespondError(c, err)
 		return
@@ -36,7 +52,18 @@ func (h *ProofHandler) CreateProofRequest(c *gin.Context) {
 }
 
 func (h *ProofHandler) GetProofRequests(c *gin.Context) {
-	res, err := h.proofService.GetProofRequests(c.Request.Context())
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	res, err := h.proofService.GetProofRequests(c.Request.Context(), claims)
 	if err != nil {
 		response.RespondError(c, err)
 		return

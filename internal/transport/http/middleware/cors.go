@@ -1,14 +1,16 @@
 package middleware
 
 import (
+	"be/config"
+
 	"github.com/gin-gonic/gin"
 )
 
-func (m *Middleware) CORSMiddleware(engine *gin.Engine) {
-	allowedOrigins := m.config.App.AllowedOrigins
-	middleware := func(c *gin.Context) {
-		m.logger.Info(allowedOrigins)
+func CORSMiddleware(config *config.Config) gin.HandlerFunc {
+	allowedOrigins := config.App.AllowedOrigins
+	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", allowedOrigins)
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 		if c.Request.Method == "OPTIONS" {
@@ -17,5 +19,4 @@ func (m *Middleware) CORSMiddleware(engine *gin.Engine) {
 		}
 		c.Next()
 	}
-	engine.Use(middleware)
 }

@@ -14,3 +14,8 @@ CREATE TABLE health_insurances (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMPTZ
 );
+
+CREATE INDEX idx_health_insurances_public_id ON health_insurances(public_id);
+CREATE INDEX idx_health_insurances_insurance_number ON health_insurances(insurance_number);
+CREATE INDEX idx_health_insurances_holder_did ON health_insurances(holder_did);
+CREATE INDEX idx_health_insurances_issuer_did ON health_insurances(issuer_did);

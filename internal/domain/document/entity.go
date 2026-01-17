@@ -1,109 +1,127 @@
 package document
 
 import (
+	"be/internal/shared/constant"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type CitizenIdentity struct {
-	ID               uint              `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID         uuid.UUID         `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	IDNumber         string            `gorm:"column:id_number;type:varchar(20);uniqueIndex" json:"id_number" validate:"required,len=12,numeric"`
-	FirstName        string            `gorm:"column:first_name;type:varchar(100);not null" json:"first_name" validate:"required,min=1,max=100"`
-	LastName         string            `gorm:"column:last_name;type:varchar(100);not null" json:"last_name" validate:"required,min=1,max=100"`
-	Gender           string            `gorm:"column:gender;type:varchar(20);not null" json:"gender" validate:"required,oneof=male female other"`
-	DateOfBirth      time.Time         `gorm:"column:date_of_birth;type:date;not null" json:"date_of_birth" validate:"required,ltfield=IssueDate"`
-	PlaceOfBirth     string            `gorm:"column:place_of_birth;type:text;not null" json:"place_of_birth" validate:"required,max=255"`
-	Status           string            `gorm:"column:status;type:varchar(30);default:'active';index" json:"status" validate:"required,oneof=active expired revoked"`
-	IssueDate        time.Time         `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate       time.Time         `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
-	HolderDID        string            `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
-	IssuerDID        string            `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
-	CreatedAt        time.Time         `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt        time.Time         `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
-	RevokedAt        *time.Time        `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
-	AcademicDegrees  []AcademicDegree  `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"academic_degrees,omitempty"`
-	HealthInsurances []HealthInsurance `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"health_insurances,omitempty"`
-	DriverLicenses   []DriverLicense   `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"driver_licenses,omitempty"`
-	Passports        []Passport        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"passports,omitempty"`
+	ID               uint                    `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID         uuid.UUID               `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	IDNumber         string                  `gorm:"column:id_number;type:varchar(20);uniqueIndex" json:"id_number" validate:"required,len=12,numeric"`
+	FirstName        string                  `gorm:"column:first_name;type:varchar(100);not null" json:"first_name" validate:"required,min=1,max=100"`
+	LastName         string                  `gorm:"column:last_name;type:varchar(100);not null" json:"last_name" validate:"required,min=1,max=100"`
+	Gender           constant.Gender         `gorm:"column:gender;type:varchar(20);not null" json:"gender" validate:"required"`
+	DateOfBirth      time.Time               `gorm:"column:date_of_birth;type:date;not null" json:"date_of_birth" validate:"required,ltfield=IssueDate"`
+	PlaceOfBirth     string                  `gorm:"column:place_of_birth;type:text;not null" json:"place_of_birth" validate:"required,max=255"`
+	Status           constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
+	IssueDate        time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
+	ExpiryDate       time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	HolderDID        string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
+	IssuerDID        string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
+	CreatedAt        time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt        time.Time               `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	RevokedAt        *time.Time              `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
+	AcademicDegrees  []AcademicDegree        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"academic_degrees,omitempty"`
+	HealthInsurances []HealthInsurance       `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"health_insurances,omitempty"`
+	DriverLicenses   []DriverLicense         `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"driver_licenses,omitempty"`
+	Passports        []Passport              `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"passports,omitempty"`
+}
+
+func (CitizenIdentity) TableName() string {
+	return "citizen_identities"
 }
 
 type AcademicDegree struct {
-	ID             uint             `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID       uuid.UUID        `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	CID            uint             `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
-	DegreeNumber   string           `gorm:"column:degree_number;type:varchar(50);uniqueIndex" json:"degree_number" validate:"required,max=50"`
-	DegreeType     string           `gorm:"column:degree_type;type:varchar(50);not null" json:"degree_type" validate:"required,oneof=bachelor master phd associate_professor full_professor"`
-	Major          string           `gorm:"column:major;type:varchar(255);not null" json:"major" validate:"required,min=2,max=255"`
-	University     string           `gorm:"column:university;type:varchar(255);not null" json:"university" validate:"required,min=2,max=255"`
-	GraduateYear   uint             `gorm:"column:graduate_year;type:smallint;not null" json:"graduate_year" validate:"required,gte=1900,lte=2100"`
-	GPA            float32          `gorm:"column:gpa;type:decimal(4,2);not null" json:"gpa" validate:"required,gte=0,lte=4"`
-	Classification string           `gorm:"column:classification;type:varchar(50);not null" json:"classification" validate:"required,oneof=excellent very_good good average pass"`
-	Status         string           `gorm:"column:status;type:varchar(30);default:'active';index" json:"status" validate:"required,oneof=active expired revoked"`
-	IssueDate      time.Time        `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required,ltfield=GraduateYearDate"`
-	HolderDID      string           `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
-	IssuerDID      string           `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
-	CreatedAt      time.Time        `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt      time.Time        `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
-	RevokedAt      *time.Time       `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
-	Citizen        *CitizenIdentity `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"-"`
+	ID             uint                    `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID       uuid.UUID               `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	CID            uint                    `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
+	DegreeNumber   string                  `gorm:"column:degree_number;type:varchar(50);uniqueIndex" json:"degree_number" validate:"required,max=50"`
+	DegreeType     constant.DegreeType     `gorm:"column:degree_type;type:varchar(50);not null" json:"degree_type" validate:"required"`
+	Major          string                  `gorm:"column:major;type:varchar(255);not null" json:"major" validate:"required,min=2,max=255"`
+	University     string                  `gorm:"column:university;type:varchar(255);not null" json:"university" validate:"required,min=2,max=255"`
+	GraduateYear   uint                    `gorm:"column:graduate_year;type:smallint;not null" json:"graduate_year" validate:"required,gte=1900,lte=2100"`
+	GPA            float32                 `gorm:"column:gpa;type:decimal(4,2);not null" json:"gpa" validate:"required,gte=0,lte=4"`
+	Classification string                  `gorm:"column:classification;type:varchar(50);not null" json:"classification" validate:"required"`
+	Status         constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
+	IssueDate      time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
+	HolderDID      string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
+	IssuerDID      string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
+	CreatedAt      time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt      time.Time               `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	RevokedAt      *time.Time              `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
+	Citizen        *CitizenIdentity        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"citizen,omitempty"`
+}
 
-	// Helper field để validate GraduateYear (không lưu DB)
-	GraduateYearDate time.Time `gorm:"-" json:"-" validate:"-"`
+func (AcademicDegree) TableName() string {
+	return "academic_degrees"
 }
 
 type HealthInsurance struct {
-	ID              uint             `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID        uuid.UUID        `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	CID             uint             `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
-	InsuranceNumber string           `gorm:"column:insurance_number;type:varchar(20);uniqueIndex" json:"insurance_number" validate:"required,len=15,numeric"`
-	InsuranceType   string           `gorm:"column:insurance_type;type:varchar(100);not null" json:"insurance_type" validate:"required,max=100"`
-	Hospital        string           `gorm:"column:hospital;type:varchar(255);not null" json:"hospital" validate:"required,max=255"`
-	Status          string           `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required,oneof=active expired revoked"`
-	StartDate       time.Time        `gorm:"column:start_date;type:date;not null" json:"start_date" validate:"required"`
-	ExpiryDate      time.Time        `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=StartDate"`
-	HolderDID       string           `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
-	IssuerDID       string           `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
-	CreatedAt       time.Time        `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt       time.Time        `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
-	RevokedAt       *time.Time       `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
-	Citizen         *CitizenIdentity `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"-"`
+	ID              uint                    `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID        uuid.UUID               `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	CID             uint                    `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
+	InsuranceNumber string                  `gorm:"column:insurance_number;type:varchar(20);uniqueIndex" json:"insurance_number" validate:"required,len=15,numeric"`
+	InsuranceType   string                  `gorm:"column:insurance_type;type:varchar(100);not null" json:"insurance_type" validate:"required,max=100"`
+	Hospital        string                  `gorm:"column:hospital;type:varchar(255);not null" json:"hospital" validate:"required,max=255"`
+	Status          constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
+	StartDate       time.Time               `gorm:"column:start_date;type:date;not null" json:"start_date" validate:"required"`
+	ExpiryDate      time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=StartDate"`
+	HolderDID       string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
+	IssuerDID       string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
+	CreatedAt       time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt       time.Time               `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	RevokedAt       *time.Time              `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
+	Citizen         *CitizenIdentity        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"citizen,omitempty"`
+}
+
+func (HealthInsurance) TableName() string {
+	return "health_insurances"
 }
 
 type DriverLicense struct {
-	ID            uint             `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID      uuid.UUID        `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	CID           uint             `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
-	LicenseNumber string           `gorm:"column:license_number;type:varchar(30);uniqueIndex" json:"license_number" validate:"required,max=30"`
-	Class         string           `gorm:"column:class;type:varchar(20);not null" json:"class" validate:"required"`
-	Point         int              `gorm:"column:point;type:smallint;default:12" json:"point" validate:"gte=0,lte=12"`
-	Status        string           `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required,oneof=active expired revoked"`
-	IssueDate     time.Time        `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate    time.Time        `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
-	HolderDID     string           `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
-	IssuerDID     string           `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
-	CreatedAt     time.Time        `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt     time.Time        `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
-	RevokedAt     *time.Time       `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
-	Citizen       *CitizenIdentity `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"-"`
+	ID            uint                    `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID      uuid.UUID               `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	CID           uint                    `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
+	LicenseNumber string                  `gorm:"column:license_number;type:varchar(30);uniqueIndex" json:"license_number" validate:"required,max=30"`
+	Class         string                  `gorm:"column:class;type:varchar(20);not null" json:"class" validate:"required"`
+	Point         uint                    `gorm:"column:point;type:smallint;default:12" json:"point" validate:"gte=0,lte=12"`
+	Status        constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
+	IssueDate     time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
+	ExpiryDate    time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	HolderDID     string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
+	IssuerDID     string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
+	CreatedAt     time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt     time.Time               `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	RevokedAt     *time.Time              `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
+	Citizen       *CitizenIdentity        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"citizen,omitempty"`
+}
+
+func (DriverLicense) TableName() string {
+	return "driver_licenses"
 }
 
 type Passport struct {
-	ID             uint             `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID       uuid.UUID        `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	CID            uint             `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
-	PassportNumber string           `gorm:"column:passport_number;type:varchar(15);uniqueIndex" json:"passport_number" validate:"required,max=15,alphanum"`
-	PassportType   string           `gorm:"column:passport_type;type:varchar(100);not null" json:"passport_type" validate:"required,oneof=ordinary diplomatic official"`
-	Nationality    string           `gorm:"column:nationality;type:char(3);not null" json:"nationality" validate:"required,len=3,alpha"`
-	MRZ            string           `gorm:"column:mrz;type:text;not null" json:"mrz" validate:"required,min=88,max=88"`
-	Status         string           `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required,oneof=active expired revoked"`
-	IssueDate      time.Time        `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate     time.Time        `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
-	HolderDID      string           `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
-	IssuerDID      string           `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
-	CreatedAt      time.Time        `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt      time.Time        `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
-	RevokedAt      *time.Time       `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
-	Citizen        *CitizenIdentity `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"-"`
+	ID             uint                    `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID       uuid.UUID               `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	CID            uint                    `gorm:"column:cid;not null;index" json:"cid" validate:"required"`
+	PassportNumber string                  `gorm:"column:passport_number;type:varchar(15);uniqueIndex" json:"passport_number" validate:"required,max=15,alphanum"`
+	PassportType   constant.PassportType   `gorm:"column:passport_type;type:varchar(100);not null" json:"passport_type" validate:"required"`
+	Nationality    string                  `gorm:"column:nationality;type:char(3);not null" json:"nationality" validate:"required,len=3,alpha"`
+	MRZ            string                  `gorm:"column:mrz;type:text;not null" json:"mrz" validate:"required,min=72,max=90"`
+	Status         constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
+	IssueDate      time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
+	ExpiryDate     time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	HolderDID      string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
+	IssuerDID      string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
+	CreatedAt      time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt      time.Time               `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	RevokedAt      *time.Time              `gorm:"type:timestamptz" json:"revoked_at,omitempty" validate:"omitempty"`
+	Citizen        *CitizenIdentity        `gorm:"foreignKey:CID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"citizen,omitempty"`
+}
+
+func (Passport) TableName() string {
+	return "passports"
 }

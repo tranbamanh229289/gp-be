@@ -1,4 +1,4 @@
-package response
+package helper
 
 import (
 	"be/internal/shared/constant"
@@ -34,17 +34,19 @@ func RespondSuccess(ctx *gin.Context, data interface{}) {
 func RespondError(ctx *gin.Context, err error) {
 	var appErrors *constant.Errors
 	if errors.As(err, &appErrors) {
-		ctx.JSON(http.StatusInternalServerError, &Response{
-			Status:  http.StatusInternalServerError,
+		ctx.JSON(appErrors.Status, &Response{
+			Status:  appErrors.Status,
 			Code:    appErrors.Code,
 			Message: appErrors.Message,
 		})
+	} else {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Status:  http.StatusInternalServerError,
+			Code:    constant.InternalServer.Code,
+			Message: constant.InternalServer.Message,
+		})
 	}
-	ctx.JSON(http.StatusInternalServerError, Response{
-		Status:  http.StatusInternalServerError,
-		Code:    constant.InternalServer.Code,
-		Message: constant.InternalServer.Message,
-	})
+
 }
 
 func RespondWithPaginationSuccess(ctx *gin.Context, data interface{}, metadata interface{}) {

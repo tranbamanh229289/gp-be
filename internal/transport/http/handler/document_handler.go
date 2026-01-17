@@ -19,12 +19,77 @@ func NewDocumentHandler(cs service.IDocumentService) *DocumentHandler {
 	}
 }
 
+func (h *DocumentHandler) GetDocumentByHolderDID(c *gin.Context) {
+	did := c.Param("did")
+	if did == "" {
+		response.RespondError(c, &constant.BadRequest)
+		return
+	}
+	docType := c.Query("documentType")
+	if docType == "" {
+		response.RespondError(c, &constant.BadRequest)
+	}
+	switch constant.DocumentType(docType) {
+	case constant.CitizenIdentity:
+		entity, err := h.documentService.GetCitizenIdentityByHolderDID(c.Request.Context(), did)
+		if err != nil {
+			response.RespondError(c, err)
+			return
+		}
+		response.RespondSuccess(c, entity)
+	case constant.AcademicDegree:
+		entity, err := h.documentService.GetAcademicDegreeByHolderDID(c.Request.Context(), did)
+		if err != nil {
+			response.RespondError(c, err)
+			return
+		}
+		response.RespondSuccess(c, entity)
+	case constant.HealthInsurance:
+		entity, err := h.documentService.GetHealthInsuranceByHolderDID(c.Request.Context(), did)
+		if err != nil {
+			response.RespondError(c, err)
+			return
+		}
+		response.RespondSuccess(c, entity)
+	case constant.DriverLicense:
+		entity, err := h.documentService.GetDriverLicenseByHolderDID(c.Request.Context(), did)
+		if err != nil {
+			response.RespondError(c, err)
+			return
+		}
+		response.RespondSuccess(c, entity)
+	case constant.Passport:
+		entity, err := h.documentService.GetPassportByHolderDID(c.Request.Context(), did)
+		if err != nil {
+			response.RespondError(c, err)
+			return
+		}
+		response.RespondSuccess(c, entity)
+	}
+
+}
 func (h *DocumentHandler) CreateCitizenIdentity(c *gin.Context) {
 	var citizenIdentityRequest dto.CitizenIdentityCreatedRequestDto
+
 	if err := c.ShouldBindJSON(&citizenIdentityRequest); err != nil {
 		response.RespondError(c, err)
 		return
 	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	citizenIdentityRequest.IssuerDID = claims.DID
+
 	citizenIdentityResponse, err := h.documentService.CreateCitizenIdentity(c.Request.Context(), &citizenIdentityRequest)
 
 	if err != nil {
@@ -43,6 +108,7 @@ func (h *DocumentHandler) UpdateCitizenIdentity(c *gin.Context) {
 	var citizenIdentityRequest dto.CitizenIdentityUpdatedRequestDto
 	if err := c.ShouldBindJSON(&citizenIdentityRequest); err != nil {
 		response.RespondError(c, err)
+		return
 	}
 
 	citizenIdentityResponse, err := h.documentService.UpdateCitizenIdentity(c.Request.Context(), id, &citizenIdentityRequest)
@@ -60,7 +126,7 @@ func (h *DocumentHandler) RevokeCitizenIdentity(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	var citizenIdentityRevokedRequest dto.CitizenIdentityRevokedRequestDto
+	var citizenIdentityRevokedRequest dto.CitizenIdentityOptionRequestDto
 
 	if err := c.ShouldBindJSON(&citizenIdentityRevokedRequest); err != nil {
 		response.RespondError(c, err)
@@ -82,7 +148,7 @@ func (h *DocumentHandler) GetCitizenIdentity(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	citizenIdentity, err := h.documentService.GetCitizenIdentityById(c.Request.Context(), id)
+	citizenIdentity, err := h.documentService.GetCitizenIdentityByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return
@@ -103,7 +169,20 @@ func (h *DocumentHandler) CreateAcademicDegree(c *gin.Context) {
 	var academicDegreeRequest dto.AcademicDegreeCreatedRequestDto
 	if err := c.ShouldBindJSON(&academicDegreeRequest); err != nil {
 		response.RespondError(c, err)
+		return
 	}
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	academicDegreeRequest.IssuerDID = claims.DID
 	academicDegreeResponse, err := h.documentService.CreateAcademicDegree(c.Request.Context(), &academicDegreeRequest)
 
 	if err != nil {
@@ -140,7 +219,7 @@ func (h *DocumentHandler) RevokeAcademicDegree(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	var academicDegreeRevokedRequest dto.AcademicDegreeRevokedRequestDto
+	var academicDegreeRevokedRequest dto.AcademicDegreeOptionRequestDto
 
 	if err := c.ShouldBindJSON(&academicDegreeRevokedRequest); err != nil {
 		response.RespondError(c, err)
@@ -162,7 +241,7 @@ func (h *DocumentHandler) GetAcademicDegree(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	academicDegree, err := h.documentService.GetAcademicDegreeById(c.Request.Context(), id)
+	academicDegree, err := h.documentService.GetAcademicDegreeByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return
@@ -183,16 +262,30 @@ func (h *DocumentHandler) CreateHealthInsurance(c *gin.Context) {
 	var healthInsuranceRequest dto.HealthInsuranceCreatedRequestDto
 
 	if err := c.ShouldBindJSON(&healthInsuranceRequest); err != nil {
-
 		response.RespondError(c, err)
 		return
 	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	healthInsuranceRequest.IssuerDID = claims.DID
+
 	academyInsuranceResponse, err := h.documentService.CreateHealthInsurance(c.Request.Context(), &healthInsuranceRequest)
 
 	if err != nil {
 		response.RespondError(c, err)
 		return
 	}
+
 	response.RespondSuccess(c, academyInsuranceResponse)
 }
 
@@ -223,7 +316,7 @@ func (h *DocumentHandler) RevokeHealthInsurance(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	var healthInsuranceRevokedRequest dto.HealthInsuranceRevokedRequestDto
+	var healthInsuranceRevokedRequest dto.HealthInsuranceOptionRequestDto
 
 	if err := c.ShouldBindJSON(&healthInsuranceRevokedRequest); err != nil {
 		response.RespondError(c, err)
@@ -245,7 +338,7 @@ func (h *DocumentHandler) GetHealthInsurance(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	healthInsurance, err := h.documentService.GetHealthInsuranceById(c.Request.Context(), id)
+	healthInsurance, err := h.documentService.GetHealthInsuranceByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return
@@ -268,6 +361,20 @@ func (h *DocumentHandler) CreateDriverLicense(c *gin.Context) {
 		response.RespondError(c, err)
 		return
 	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	driverLicenseRequest.IssuerDID = claims.DID
+
 	driverLicenseResponse, err := h.documentService.CreateDriverLicense(c.Request.Context(), &driverLicenseRequest)
 
 	if err != nil {
@@ -304,7 +411,7 @@ func (h *DocumentHandler) RevokeDriverLicense(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	var driverLicenseRevokedRequest dto.DriverLicenseRevokedRequestDto
+	var driverLicenseRevokedRequest dto.DriverLicenseOptionRequestDto
 
 	if err := c.ShouldBindJSON(&driverLicenseRevokedRequest); err != nil {
 		response.RespondError(c, err)
@@ -326,7 +433,7 @@ func (h *DocumentHandler) GetDriverLicense(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	driverLicense, err := h.documentService.GetDriverLicenseById(c.Request.Context(), id)
+	driverLicense, err := h.documentService.GetDriverLicenseByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return
@@ -349,6 +456,21 @@ func (h *DocumentHandler) CreatePassport(c *gin.Context) {
 		response.RespondError(c, err)
 		return
 	}
+
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	passportRequest.IssuerDID = claims.DID
+
 	passportResponse, err := h.documentService.CreatePassport(c.Request.Context(), &passportRequest)
 
 	if err != nil {
@@ -385,7 +507,7 @@ func (h *DocumentHandler) RevokePassport(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	var passportRevokedRequest dto.PassportRevokedRequestDto
+	var passportRevokedRequest dto.PassportOptionRequestDto
 
 	if err := c.ShouldBindJSON(&passportRevokedRequest); err != nil {
 		response.RespondError(c, err)
@@ -406,7 +528,7 @@ func (h *DocumentHandler) GetPassport(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	passport, err := h.documentService.GetPassportById(c.Request.Context(), id)
+	passport, err := h.documentService.GetPassportByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return

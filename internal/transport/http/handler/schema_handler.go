@@ -32,23 +32,52 @@ func (h *SchemaHandler) GetSchemaByPublicId(c *gin.Context) {
 		response.RespondError(c, &constant.BadRequest)
 		return
 	}
-	schemas, err := h.schemaService.GetSchemaByPublicId(c.Request.Context(), id)
+	schema, err := h.schemaService.GetSchemaByPublicId(c.Request.Context(), id)
 	if err != nil {
 		response.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, schemas)
+	response.RespondSuccess(c, schema)
+}
+
+func (h *SchemaHandler) GetSchemaAttributeByPublicId(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.RespondError(c, &constant.BadRequest)
+		return
+	}
+	schemaAttributes, err := h.schemaService.GetSchemaAttributesBySchemaId(c.Request.Context(), id)
+	if err != nil {
+		response.RespondError(c, &constant.BadRequest)
+		return
+	}
+	response.RespondSuccess(c, schemaAttributes)
 }
 
 func (h *SchemaHandler) CreateSchema(c *gin.Context) {
-	var request *dto.SchemaBuilderDto
-	if err := c.ShouldBindJSON(request); err != nil {
+	var request dto.SchemaBuilderDto
+	if err := c.ShouldBindJSON(&request); err != nil {
 		response.RespondError(c, err)
 		return
 	}
-	schema, err := h.schemaService.CreateSchema(c.Request.Context(), request)
+
+	user, ok := c.Get("user")
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		response.RespondError(c, &constant.InternalServer)
+		return
+	}
+	request.IssuerDID = claims.DID
+
+	schema, err := h.schemaService.CreateSchema(c.Request.Context(), &request)
 	if err != nil {
 		response.RespondError(c, err)
+		return
 	}
 	response.RespondSuccess(c, schema)
 }

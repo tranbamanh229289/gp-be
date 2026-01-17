@@ -3,6 +3,7 @@ package repository
 import (
 	gist "be/internal/domain/gist"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"context"
 )
 
@@ -17,7 +18,8 @@ func NewStateTransitionRepository(db *postgres.PostgresDB) gist.IStateTransition
 }
 
 func (r *StateTransitionRepository) CreateStateTransition(ctx context.Context, entity *gist.StateTransition) (*gist.StateTransition, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil

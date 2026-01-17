@@ -16,6 +16,7 @@ type ICitizenIdentityRepository interface {
 type IAcademicDegreeRepository interface {
 	FindAcademicDegreeByPublicId(ctx context.Context, publicId string) (*AcademicDegree, error)
 	FindAcademicDegreeByDegreeNumber(ctx context.Context, degreeNumber string) (*AcademicDegree, error)
+	FindAcademicDegreeByHolderDID(ctx context.Context, holderDID string) (*AcademicDegree, error)
 	FindAllAcademicDegrees(ctx context.Context) ([]*AcademicDegree, error)
 	CreateAcademicDegree(ctx context.Context, entity *AcademicDegree) (*AcademicDegree, error)
 	SaveAcademicDegree(ctx context.Context, entity *AcademicDegree) (*AcademicDegree, error)
@@ -25,6 +26,7 @@ type IAcademicDegreeRepository interface {
 type IHealthInsuranceRepository interface {
 	FindHealthInsuranceByPublicId(ctx context.Context, publicId string) (*HealthInsurance, error)
 	FindHealthInsuranceByInsuranceNumber(ctx context.Context, insuranceNumber string) (*HealthInsurance, error)
+	FindHealthInsuranceByHolderDID(ctx context.Context, holderDID string) (*HealthInsurance, error)
 	FindAllHealthInsurances(ctx context.Context) ([]*HealthInsurance, error)
 	CreateHealthInsurance(ctx context.Context, entity *HealthInsurance) (*HealthInsurance, error)
 	SaveHealthInsurance(ctx context.Context, entity *HealthInsurance) (*HealthInsurance, error)
@@ -34,6 +36,7 @@ type IHealthInsuranceRepository interface {
 type IDriverLicenseRepository interface {
 	FindDriverLicenseByPublicId(ctx context.Context, publicId string) (*DriverLicense, error)
 	FindDriverLicenseByLicenseId(ctx context.Context, licenseNumber string) (*DriverLicense, error)
+	FindDriverLicenseByHolderDID(ctx context.Context, holderDID string) (*DriverLicense, error)
 	FindAllDriverLicenses(ctx context.Context) ([]*DriverLicense, error)
 	CreateDriverLicense(ctx context.Context, entity *DriverLicense) (*DriverLicense, error)
 	SaveDriverLicense(ctx context.Context, entity *DriverLicense) (*DriverLicense, error)
@@ -43,6 +46,7 @@ type IDriverLicenseRepository interface {
 type IPassportRepository interface {
 	FindPassportByPublicId(ctx context.Context, publicId string) (*Passport, error)
 	FindPassportByPassportNumber(ctx context.Context, passportNumber string) (*Passport, error)
+	FindPassportByHolderDID(ctx context.Context, holderDID string) (*Passport, error)
 	FindAllPassports(ctx context.Context) ([]*Passport, error)
 	CreatePassport(ctx context.Context, entity *Passport) (*Passport, error)
 	SavePassport(ctx context.Context, entity *Passport) (*Passport, error)

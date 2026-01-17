@@ -1,14 +1,12 @@
 package router
 
 import (
-	"be/internal/shared/constant"
 	"be/internal/transport/http/handler"
-	"be/internal/transport/http/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupAuthJWTRouter(apiGroup *gin.RouterGroup, authJWTHandler *handler.AuthJWTHandler) {
+func (r *Router) SetupAuthJWTRouter(apiGroup *gin.RouterGroup, authJWTHandler *handler.AuthJWTHandler) {
 	authJWTGroup := apiGroup.Group("auth")
 
 	authJWTGroup.GET("refresh-token", authJWTHandler.RefreshToken)
@@ -19,7 +17,6 @@ func SetupAuthJWTRouter(apiGroup *gin.RouterGroup, authJWTHandler *handler.AuthJ
 	adminGroup.GET("", authJWTHandler.GetAllUser)
 
 	userGroup := apiGroup.Group("users")
-	userGroup.Use(middleware.AuthenticateMiddleware(authJWTHandler.GetAuthService()), middleware.AuthorizeMiddleware(constant.UserRoleUser))
 	userGroup.GET("profile/:id", authJWTHandler.GetProfile)
 	userGroup.PUT("profile/:id", authJWTHandler.UpdateProfile)
 }

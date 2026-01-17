@@ -4,6 +4,7 @@ import (
 	"be/config"
 	"be/internal/domain/credential"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"context"
 )
 
@@ -27,30 +28,43 @@ func (r *VerifiableCredentialRepository) FindVerifiableCredentialByPublicId(ctx 
 	return &entity, nil
 }
 
-func (r *VerifiableCredentialRepository) FindAllVerifiableCredential(ctx context.Context) ([]*credential.VerifiableCredential, error) {
+func (r *VerifiableCredentialRepository) FindAllVerifiableCredentialsByHolderDID(ctx context.Context, did string) ([]*credential.VerifiableCredential, error) {
 	var entities []*credential.VerifiableCredential
-	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Find(&entities).Error; err != nil {
+
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Where("holder_did = ?", did).Find(&entities).Error; err != nil {
+		return nil, err
+	}
+	return entities, nil
+}
+
+func (r *VerifiableCredentialRepository) FindAllVerifiableCredentialsByIssuerDID(ctx context.Context, did string) ([]*credential.VerifiableCredential, error) {
+	var entities []*credential.VerifiableCredential
+
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Where("issuer_did = ?", did).Find(&entities).Error; err != nil {
 		return nil, err
 	}
 	return entities, nil
 }
 
 func (r *VerifiableCredentialRepository) CreateVerifiableCredential(ctx context.Context, entity *credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *VerifiableCredentialRepository) SaveVerifiableCredential(ctx context.Context, entity *credential.VerifiableCredential) (*credential.VerifiableCredential, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Save(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *VerifiableCredentialRepository) UpdateVerifiableCredential(ctx context.Context, entity *credential.VerifiableCredential, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

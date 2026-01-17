@@ -3,6 +3,7 @@ package repository
 import (
 	"be/internal/domain/document"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"be/pkg/logger"
 	"context"
 )
@@ -52,21 +53,24 @@ func (r *CitizenIdentityRepository) FindAllCitizenIdentities(ctx context.Context
 }
 
 func (r *CitizenIdentityRepository) CreateCitizenIdentity(ctx context.Context, entity *document.CitizenIdentity) (*document.CitizenIdentity, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *CitizenIdentityRepository) SaveCitizenIdentity(ctx context.Context, entity *document.CitizenIdentity) (*document.CitizenIdentity, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Save(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *CitizenIdentityRepository) UpdateCitizenIdentity(ctx context.Context, entity *document.CitizenIdentity, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil

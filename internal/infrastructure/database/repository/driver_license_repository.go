@@ -3,6 +3,7 @@ package repository
 import (
 	"be/internal/domain/document"
 	"be/internal/infrastructure/database/postgres"
+	"be/internal/shared/helper"
 	"be/pkg/logger"
 	"context"
 )
@@ -35,6 +36,14 @@ func (r *DriverLicenseRepository) FindDriverLicenseByLicenseId(ctx context.Conte
 	return &entity, nil
 }
 
+func (r *DriverLicenseRepository) FindDriverLicenseByHolderDID(ctx context.Context, holderDID string) (*document.DriverLicense, error) {
+	var entity document.DriverLicense
+	if err := r.db.GetGormDB().WithContext(ctx).Where("holder_did = ?", holderDID).First(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
 func (r *DriverLicenseRepository) FindAllDriverLicenses(ctx context.Context) ([]*document.DriverLicense, error) {
 	var entities []*document.DriverLicense
 	if err := r.db.GetGormDB().WithContext(ctx).Find(&entities).Error; err != nil {
@@ -44,21 +53,24 @@ func (r *DriverLicenseRepository) FindAllDriverLicenses(ctx context.Context) ([]
 }
 
 func (r *DriverLicenseRepository) CreateDriverLicense(ctx context.Context, entity *document.DriverLicense) (*document.DriverLicense, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Create(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *DriverLicenseRepository) SaveDriverLicense(ctx context.Context, entity *document.DriverLicense) (*document.DriverLicense, error) {
-	if err := r.db.GetGormDB().WithContext(ctx).Save(entity).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Save(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
 func (r *DriverLicenseRepository) UpdateDriverLicense(ctx context.Context, entity *document.DriverLicense, changes map[string]interface{}) error {
-	if err := r.db.GetGormDB().WithContext(ctx).Model(entity).Updates(changes).Error; err != nil {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
 		return err
 	}
 	return nil
