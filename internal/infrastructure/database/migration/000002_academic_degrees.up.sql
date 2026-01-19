@@ -10,7 +10,7 @@ CREATE TABLE academic_degrees (
     gpa DECIMAL(4,2) NOT NULL CHECK (gpa >= 0 AND gpa <= 4),
     classification VARCHAR(50) NOT NULL CHECK (classification IN ('excellent', 'very_good', 'good', 'average', 'pass')),
     status VARCHAR(30) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'revoked')),
-    issue_date DATE NOT NULL,
+    issue_date BIGINT NOT NULL,
     holder_did VARCHAR(255) NOT NULL CHECK (holder_did LIKE 'did:%'),
     issuer_did VARCHAR(255) NOT NULL CHECK (issuer_did LIKE 'did:%'),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

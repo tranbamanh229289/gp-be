@@ -28,6 +28,14 @@ func (r *VerifiableCredentialRepository) FindVerifiableCredentialByPublicId(ctx 
 	return &entity, nil
 }
 
+func (r *VerifiableCredentialRepository) FindVerifiableCredentialByCredentialId(ctx context.Context, id string) (*credential.VerifiableCredential, error) {
+	var entity credential.VerifiableCredential
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Where("credential_id = ?", id).First(&entity).Error; err != nil {
+		return nil, err
+	}
+	return &entity, nil
+}
+
 func (r *VerifiableCredentialRepository) FindAllVerifiableCredentialsByHolderDID(ctx context.Context, did string) ([]*credential.VerifiableCredential, error) {
 	var entities []*credential.VerifiableCredential
 

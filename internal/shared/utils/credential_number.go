@@ -2,11 +2,8 @@ package utils
 
 import (
 	"crypto/rand"
-	"fmt"
 	"math/big"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/mozillazg/go-unidecode"
 )
@@ -160,41 +157,23 @@ func normalize(s string) string {
 	return s
 }
 
-func GetIdNumber(dateOfBirth time.Time, gender string) (string, error) {
-	if gender != "male" && gender != "female" {
-		return "", fmt.Errorf("gender must be male or female")
-	}
+func GetIdNumber() (string, error) {
 
-	var genderCode string
-	if gender == "male" {
-		genderCode = "0"
-	} else {
-		genderCode = "1"
-	}
+	serial, err := RandomDigits(12)
 
-	birthCode := strconv.Itoa(dateOfBirth.Year())
-
-	serial, err := RandomDigits(5)
-
-	return "00" + genderCode + birthCode + serial, err
+	return serial, err
 }
 
-func GetDegreeNumber(university, major string, graduateYear uint) (string, error) {
-	universityKey := normalize(university)
-	universityCode := universities[universityKey]
+func GetDegreeNumber() (string, error) {
 
-	majorKey := normalize(major)
-	majorCode := majors[majorKey]
 	serial, err := RandomDigits(6)
 
-	graduateYearCode := fmt.Sprintf("%d", graduateYear)
-
-	return universityCode + "-" + majorCode + "-" + graduateYearCode + "-" + serial, err
+	return serial, err
 }
 
 func GetInsuranceNumber(insuranceType string) (string, error) {
-	serial, err := RandomDigits(13)
-	return "00" + serial, err
+	serial, err := RandomDigits(6)
+	return serial, err
 }
 
 func GetLicenseNumber(class string) (string, error) {

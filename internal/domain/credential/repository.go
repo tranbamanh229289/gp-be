@@ -6,6 +6,7 @@ import (
 
 type IVerifiableCredentialRepository interface {
 	FindVerifiableCredentialByPublicId(ctx context.Context, publicId string) (*VerifiableCredential, error)
+	FindVerifiableCredentialByCredentialId(ctx context.Context, id string) (*VerifiableCredential, error)
 	FindAllVerifiableCredentialsByHolderDID(ctx context.Context, did string) ([]*VerifiableCredential, error)
 	FindAllVerifiableCredentialsByIssuerDID(ctx context.Context, did string) ([]*VerifiableCredential, error)
 	CreateVerifiableCredential(ctx context.Context, entity *VerifiableCredential) (*VerifiableCredential, error)

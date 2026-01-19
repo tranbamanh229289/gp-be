@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (r *Router) SetupCredentialRouter(apiGroup *gin.RouterGroup, db *postgres.PostgresDB, credentialHandler *handler.CredentialHandler) {
+func (r *Router) SetupCredentialRouter(apiGroup *gin.RouterGroup, credentialHandler *handler.CredentialHandler, db *postgres.PostgresDB) {
 	credentialGroup := apiGroup.Group("credentials")
 	credentialGroup.Use(middleware.AuthenticateMiddleware(r.authZkService))
 

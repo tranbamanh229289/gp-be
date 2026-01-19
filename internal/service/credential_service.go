@@ -194,11 +194,6 @@ func (s *CredentialService) GetVerifiableCredentials(ctx context.Context, claims
 		vcs = append(vcs, dto.ToW3CCredential(item))
 	}
 	return vcs, nil
-	// var resp []*dto.VerifiableCredentialResponseDto
-	// for _, item := range entities {
-	// 	resp = append(resp, dto.ToVerifiableCredentialResponseDto(item))
-	// }
-	// return resp, nil
 }
 
 func (s *CredentialService) GetVerifiableCredentialById(ctx context.Context, id string) (*verifiable.W3CCredential, error) {
@@ -226,8 +221,7 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 	}
 
 	issuanceDate := time.Now().UTC()
-	expirationDate := time.Unix(credentialRequestEntity.Expiration/1000, 0).UTC()
-
+	expirationDate := time.Unix(credentialRequestEntity.Expiration, 0).UTC()
 	verifiableCredential := &verifiable.W3CCredential{
 		ID: "urn:uuid:" + uuid.New().String(),
 		Context: []string{
@@ -264,6 +258,7 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 
 	coreClaim, err := verifiableCredential.ToCoreClaim(ctx, options)
 	if err != nil {
+
 		return nil, fmt.Errorf("failed to create claim %w", err)
 	}
 
@@ -271,6 +266,9 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 	if err != nil {
 		return nil, fmt.Errorf("failed to get HiHv: %w", err)
 	}
+
+	fmt.Println("hi", hi)
+	fmt.Println("hv", hv)
 
 	identityState, err := s.identityService.GetIdentityStateByDID(ctx, credentialRequestEntity.IssuerDID)
 	if err != nil {
@@ -419,132 +417,3 @@ func (s *CredentialService) UpdateVerifiableCredential(ctx context.Context, id s
 	changes := map[string]interface{}{"status": request.Status}
 	return s.vcRepo.UpdateVerifiableCredential(ctx, vc, changes)
 }
-
-// func (s *CredentialService) getCredentialSubject(ctx context.Context, credentialRequest *credential.CredentialRequest) (map[string]interface{}, error) {
-// 	var credentialSubject = make(map[string]interface{})
-// 	var (
-// 		info interface{}
-// 		err  error
-// 	)
-
-// 	switch credentialRequest.Schema.DocumentType {
-// 	case constant.CitizenIdentity:
-// 		info, err = s.documentService.GetCitizenIdentityByHolderDID(ctx, credentialRequest.HolderDID)
-
-// 	case constant.AcademicDegree:
-// 		info, err = s.documentService.GetAcademicDegreeByHolderDID(ctx, credentialRequest.HolderDID)
-
-// 	case constant.HealthInsurance:
-// 		info, err = s.documentService.GetHealthInsuranceByHolderDID(ctx, credentialRequest.HolderDID)
-
-// 	case constant.DriverLicense:
-// 		info, err = s.documentService.GetDriverLicenseByHolderDID(ctx, credentialRequest.HolderDID)
-
-// 	case constant.Passport:
-// 		info, err = s.documentService.GetPassportByHolderDID(ctx, credentialRequest.HolderDID)
-
-// 	default:
-// 		return nil, errors.New("unsupported document type")
-
-// 	}
-
-// 	if err != nil || info != nil {
-// 		return nil, err
-// 	}
-
-// 	infoJSON, err := response.StructToMap(info)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	for _, item := range credentialRequest.Schema.SchemaAttributes {
-// 		val, ok := infoJSON[item.Name]
-// 		if !ok {
-// 			return nil, fmt.Errorf("missing field in document: %s", item.Name)
-// 		}
-// 		credentialSubject[item.Name] = val
-// 	}
-
-// 	return credentialSubject, nil
-// }
-
-// func (s *CredentialService) createCoreClaim(schema *schema.Schema, data datatypes.JSONMap) (*core.Claim, error) {
-// 	schemaHash, err := core.NewSchemaHashFromHex(schema.Hash)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	revNonce := uint64(time.Now().Unix())
-
-// 	var credentialSubject map[string]interface{} = data
-// 	id, ok := data["id"]
-
-// 	if schema.IsMerklized {
-// 		root, _ := s.calculateMerklized(credentialSubject)
-// 		if ok {
-// 			subjectID, _ := core.IDFromString(id.(string))
-// 			return core.NewClaim(schemaHash, core.WithRevocationNonce(uint64(revNonce)), core.WithIndexID(subjectID), core.WithIndexMerklizedRoot(root))
-// 		} else {
-// 			return core.NewClaim(schemaHash, core.WithRevocationNonce(uint64(revNonce)), core.WithIndexMerklizedRoot(root))
-// 		}
-// 	} else {
-// 		slotValue := make(map[string]*big.Int, 4)
-// 		for _, attr := range schema.SchemaAttributes {
-// 			slotValue[attr.Slot] = s.convertToBigInt(data[attr.Name])
-// 		}
-// 		if ok {
-// 			subjectID, _ := core.IDFromString(id.(string))
-// 			return core.NewClaim(schemaHash, core.WithRevocationNonce(uint64(revNonce)), core.WithIndexID(subjectID),
-// 				core.WithIndexDataInts(slotValue[string(constant.SlotIndexA)], slotValue[string(constant.SlotIndexA)]),
-// 				core.WithValueDataInts(slotValue[string(constant.SlotDataA)], slotValue[string(constant.SlotDataB)]))
-
-// 		} else {
-// 			return core.NewClaim(schemaHash, core.WithRevocationNonce(uint64(revNonce)),
-// 				core.WithIndexDataInts(slotValue[string(constant.SlotIndexA)], slotValue[string(constant.SlotIndexA)]),
-// 				core.WithValueDataInts(slotValue[string(constant.SlotDataA)], slotValue[string(constant.SlotDataB)]))
-// 		}
-// 	}
-
-// }
-
-// func (s *CredentialService) convertToBigInt(val interface{}) *big.Int {
-// 	switch v := val.(type) {
-// 	case int:
-// 		return big.NewInt(int64(v))
-// 	case uint:
-// 		return big.NewInt(int64(v))
-// 	case float64:
-// 		return big.NewInt(int64(v))
-// 	case string:
-// 		bi := new(big.Int)
-// 		bi.SetString(v, 10)
-// 		return bi
-
-// 	case bool:
-// 		if v {
-// 			return big.NewInt(1)
-// 		} else {
-// 			return big.NewInt(0)
-// 		}
-// 	default:
-// 		return big.NewInt(0)
-// 	}
-// }
-
-// func (s *CredentialService) calculateMerklized(credentialSubject map[string]interface{}) (*big.Int, error) {
-// 	doc := map[string]interface{}{
-// 		"@context":          []interface{}{"https://www.w3.org/2018/credentials/v1"},
-// 		"credentialSubject": credentialSubject,
-// 	}
-
-// 	docBytes, err := json.Marshal(doc)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to marshal doc: %w", err)
-// 	}
-
-// 	mk, err := merklize.MerklizeJSONLD(context.Background(), bytes.NewReader(docBytes))
-// 	if err != nil {
-// 		return nil, fmt.Errorf("failed to merklize: %w", err)
-// 	}
-// 	root := mk.Root()
-// 	return root.BigInt(), nil
-// }

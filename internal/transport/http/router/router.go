@@ -16,6 +16,7 @@ type Router struct {
 	credentialHandler *handler.CredentialHandler
 	schemaHandler     *handler.SchemaHandler
 	proofHandler      *handler.ProofHandler
+	circuitHandler    *handler.CircuitHandler
 	authZkService     service.IAuthZkService
 }
 
@@ -27,6 +28,7 @@ func NewRouter(
 	credentialHandler *handler.CredentialHandler,
 	schemaHandler *handler.SchemaHandler,
 	proofHandler *handler.ProofHandler,
+	circuitHandler *handler.CircuitHandler,
 	authZkService service.IAuthZkService,
 ) *Router {
 	return &Router{
@@ -37,6 +39,7 @@ func NewRouter(
 		credentialHandler: credentialHandler,
 		schemaHandler:     schemaHandler,
 		proofHandler:      proofHandler,
+		circuitHandler:    circuitHandler,
 		authZkService:     authZkService,
 	}
 }
@@ -46,7 +49,8 @@ func (r *Router) SetupRoutes(engine *gin.Engine) {
 	r.SetupAuthJWTRouter(apiGroup, r.authJWTHandler)
 	r.SetupAuthZkRouter(apiGroup, r.authZkHandler)
 	r.SetupDocumentRouter(apiGroup, r.documentHandler)
-	r.SetupCredentialRouter(apiGroup, r.db, r.credentialHandler)
-	r.SetupSchemaRouter(apiGroup, r.schemaHandler)
+	r.SetupCredentialRouter(apiGroup, r.credentialHandler, r.db)
+	r.SetupSchemaRouter(apiGroup, r.schemaHandler, r.db)
 	r.SetupProofRouter(apiGroup, r.proofHandler)
+	r.SetupCircuitRouter(apiGroup, r.circuitHandler)
 }

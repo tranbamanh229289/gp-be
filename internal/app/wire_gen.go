@@ -74,7 +74,9 @@ func InitializeApplication() (App, error) {
 	iProofRepository := repository.NewProofRepository(postgresDB)
 	iProofService := service.NewProofService(configConfig, zapLogger, iVerifierService, iIdentityRepository, iSchemaRepository, iProofRepository)
 	proofHandler := handler.NewProofHandler(iProofService)
-	routerRouter := router.NewRouter(postgresDB, authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler, iAuthZkService)
+	iCircuitService := service.NewCircuitService(configConfig, zapLogger, iProofRepository, iVerifiableCredentialRepository, iIdentityService)
+	circuitHandler := handler.NewCircuitHandler(iCircuitService, configConfig, zapLogger)
+	routerRouter := router.NewRouter(postgresDB, authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler, circuitHandler, iAuthZkService)
 	middlewareMiddleware := middleware.NewMiddleware(configConfig, zapLogger)
 	server := NewServer(configConfig, zapLogger)
 	app := App{
@@ -110,10 +112,10 @@ var ipfsSet = wire.NewSet(ipfs.NewPinata)
 var etherSet = wire.NewSet(ether.NewEther)
 
 // Handler Set
-var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewDocumentHandler, handler.NewSchemaHandler, handler.NewCredentialHandler, handler.NewProofHandler)
+var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewDocumentHandler, handler.NewSchemaHandler, handler.NewCredentialHandler, handler.NewProofHandler, handler.NewCircuitHandler)
 
 // Service Set
-var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewCredentialService, service.NewDocumentService, service.NewProofService, service.NewSchemaService, service.NewIdentityService, service.NewVerifierService)
+var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewCredentialService, service.NewDocumentService, service.NewProofService, service.NewSchemaService, service.NewIdentityService, service.NewVerifierService, service.NewCircuitService)
 
 // Repository Set
 var repositorySet = wire.NewSet(repository.NewAcademicDegreeRepository, repository.NewCitizenIdentityRepository, repository.NewCredentialRequestRepository, repository.NewDriverLicenseRepository, repository.NewHealthInsuranceRepository, repository.NewIdentityRepository, repository.NewMerkletreeRepository, repository.NewPassportRepository, repository.NewProofRepository, repository.NewSchemaAttributeRepository, repository.NewSchemaRepository, repository.NewStateTransitionRepository, repository.NewUserRepository, repository.NewVerifiableCredentialRepository)

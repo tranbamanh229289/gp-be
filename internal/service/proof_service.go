@@ -15,7 +15,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/iden3/go-iden3-auth/v2/pubsignals"
-	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 	"gorm.io/gorm"
 )
@@ -24,7 +23,7 @@ type IProofService interface {
 	CreateProofRequest(ctx context.Context, request *protocol.AuthorizationRequestMessage) (*dto.ProofRequestResponseDto, error)
 	GetProofRequests(ctx context.Context, claims *dto.ZKClaims) ([]*dto.ProofRequestResponseDto, error)
 	UpdateProofRequest(ctx context.Context, id string, request *dto.ProofRequestUpdatedRequestDto) error
-	CreateProofResponse(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error)
+	VerifyZKProof(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error)
 	GetProofResponses(ctx context.Context) ([]*dto.ProofVerificationResponseDto, error)
 }
 
@@ -187,7 +186,7 @@ func (s *ProofService) UpdateProofRequest(ctx context.Context, id string, reques
 	return s.proofRepo.UpdateProofRequest(ctx, entity, changes)
 }
 
-func (s *ProofService) CreateProofResponse(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error) {
+func (s *ProofService) VerifyZKProof(ctx context.Context, proofResponse *protocol.AuthorizationResponseMessage) (*dto.ProofVerificationResponseDto, error) {
 
 	proofRequestEntity, err := s.proofRepo.FindProofRequestByThreadId(ctx, proofResponse.ThreadID)
 	if err != nil {
@@ -219,7 +218,7 @@ func (s *ProofService) CreateProofResponse(ctx context.Context, proofResponse *p
 	if proofResponse.To != proofRequestEntity.VerifierDID {
 		return nil, errors.New("verifier DID mismatch")
 	}
-	var proofRequest *protocol.AuthorizationRequestMessage = s.toAuthorizationRequest(proofRequestEntity)
+	var proofRequest *protocol.AuthorizationRequestMessage = dto.ToAuthorizationRequest(proofRequestEntity)
 	err = s.verifier.VerifyAuthResponse(ctx, *proofResponse, *proofRequest)
 	if err != nil {
 		s.logger.Info(fmt.Sprintf("Verify Failed: %s", err))
@@ -260,41 +259,4 @@ func (s *ProofService) GetProofResponses(ctx context.Context) ([]*dto.ProofVerif
 		})
 	}
 	return resp, nil
-}
-
-func (s *ProofService) toAuthorizationRequest(pr *proof.ProofRequest) *protocol.AuthorizationRequestMessage {
-	query := make(map[string]interface{})
-	params := make(map[string]interface{})
-	query["allowedIssuers"] = pr.AllowedIssuers
-	query["context"] = pr.Schema.ContextURL
-	query["type"] = pr.Schema.Type
-	query["credentialSubject"] = pr.CredentialSubject
-	query["proofType"] = pr.ProofType
-	query["skipClaimRevocationCheck"] = pr.SkipClaimRevocationCheck
-	query["groupId"] = pr.GroupID
-	params["nullifierSessionId"] = pr.NullifierSession
-
-	return &protocol.AuthorizationRequestMessage{
-		ID:       pr.ThreadID,
-		From:     pr.VerifierDID,
-		Typ:      packers.MediaTypePlainMessage,
-		Type:     protocol.AuthorizationRequestMessageType,
-		ThreadID: pr.ThreadID,
-		Body: protocol.AuthorizationRequestMessageBody{
-			CallbackURL: pr.CallbackURL,
-			Reason:      pr.Reason,
-			Message:     pr.Message,
-			Scope: []protocol.ZeroKnowledgeProofRequest{
-				{
-					ID:        pr.ScopeID,
-					CircuitID: pr.CircuitID,
-					Query:     query,
-					Params:    params,
-				},
-			},
-		},
-
-		ExpiresTime: pr.ExpiresTime,
-		CreatedTime: pr.CreatedTime,
-	}
 }

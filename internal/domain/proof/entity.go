@@ -29,8 +29,9 @@ type ProofRequest struct {
 	Status                   constant.ProofRequestStatus `gorm:"column:status;type:varchar(50);default:'active'" json:"status" validate:"required"`
 	CreatedTime              *int64                      `gorm:"column:created_time;type:bigint" json:"created_time,omitempty" validate:"omitempty"`
 	ExpiresTime              *int64                      `gorm:"column:expires_time;type:bigint" json:"expires_time,omitempty" validate:"omitempty"`
-	CreatedAt                time.Time                   `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt                time.Time                   `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
 
 	ProofResponses []*ProofResponse `gorm:"foreignKey:RequestID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"proof_responses,omitempty"`
 	Schema         *schema.Schema   `gorm:"foreignKey:SchemaID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"schema,omitempty"`
@@ -38,14 +39,14 @@ type ProofRequest struct {
 }
 
 type ProofResponse struct {
-	ID        uint                         `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
-	PublicID  uuid.UUID                    `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
-	RequestID uint                         `gorm:"column:request_id;not null;index" json:"request_id" validate:"required"`
-	HolderDID string                       `gorm:"column:holder_did;type:varchar(255);not null;index" json:"holder_did" validate:"required,startswith=did:"`
-	Status    constant.ProofResponseStatus `gorm:"column:status;type:varchar(50);default:'pending';index" json:"status" validate:"required"`
-	CreatedAt time.Time                    `gorm:"autoCreateTime" json:"created_at" validate:"-"`
-	UpdatedAt time.Time                    `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
+	ID           uint                         `gorm:"primaryKey;autoIncrement" json:"id,omitempty" validate:"-"`
+	PublicID     uuid.UUID                    `gorm:"column:public_id;type:uuid;uniqueIndex;default:gen_random_uuid()" json:"public_id" validate:"required"`
+	RequestID    uint                         `gorm:"column:request_id;not null;index" json:"request_id" validate:"required"`
+	HolderDID    string                       `gorm:"column:holder_did;type:varchar(255);not null;index" json:"holder_did" validate:"required,startswith=did:"`
+	Status       constant.ProofResponseStatus `gorm:"column:status;type:varchar(50);default:'pending';index" json:"status" validate:"required"`
+	ProofRequest *ProofRequest                `gorm:"foreignKey:RequestID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"request,omitempty"`
+	Holder       *schema.Identity             `gorm:"foreignKey:HolderDID;references:DID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"holder,omitempty"`
 
-	ProofRequest *ProofRequest    `gorm:"foreignKey:RequestID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"request,omitempty"`
-	Holder       *schema.Identity `gorm:"foreignKey:HolderDID;references:DID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT" json:"holder,omitempty"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at" validate:"-"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at" validate:"-"`
 }

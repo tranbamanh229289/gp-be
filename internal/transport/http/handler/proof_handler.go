@@ -92,13 +92,13 @@ func (h *ProofHandler) UpdateProofRequest(c *gin.Context) {
 	response.RespondSuccess(c, "")
 }
 
-func (h *ProofHandler) CreateProofResponse(c *gin.Context) {
+func (h *ProofHandler) VerifyZKProof(c *gin.Context) {
 	var request protocol.AuthorizationResponseMessage
 	if err := c.ShouldBindJSON(&request); err != nil {
 		response.RespondError(c, err)
 		return
 	}
-	res, err := h.proofService.CreateProofResponse(c.Request.Context(), &request)
+	res, err := h.proofService.VerifyZKProof(c.Request.Context(), &request)
 	if err != nil {
 		response.RespondError(c, err)
 		return

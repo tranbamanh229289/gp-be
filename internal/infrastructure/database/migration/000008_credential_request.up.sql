@@ -7,7 +7,7 @@ CREATE TABLE credential_requests (
     schema_id BIGINT NOT NULL REFERENCES schemas(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     schema_hash VARCHAR(128) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-    expiration BIGINT,
+    expiration BIGINT NOT NULL,
     created_time BIGINT,
     expires_time BIGINT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

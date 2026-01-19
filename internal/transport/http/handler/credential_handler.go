@@ -170,6 +170,7 @@ func (h *CredentialHandler) IssueVerifiableCredential(c *gin.Context) {
 
 	res, err := h.credentialService.IssueVerifiableCredential(c.Request.Context(), id, &request, claims)
 	if err != nil {
+		fmt.Println(err)
 		response.RespondError(c, err)
 		return
 	}

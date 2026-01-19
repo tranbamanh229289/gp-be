@@ -14,11 +14,11 @@ type CitizenIdentity struct {
 	FirstName        string                  `gorm:"column:first_name;type:varchar(100);not null" json:"first_name" validate:"required,min=1,max=100"`
 	LastName         string                  `gorm:"column:last_name;type:varchar(100);not null" json:"last_name" validate:"required,min=1,max=100"`
 	Gender           constant.Gender         `gorm:"column:gender;type:varchar(20);not null" json:"gender" validate:"required"`
-	DateOfBirth      time.Time               `gorm:"column:date_of_birth;type:date;not null" json:"date_of_birth" validate:"required,ltfield=IssueDate"`
+	DateOfBirth      int64                   `gorm:"column:date_of_birth;type:bigint;not null" json:"date_of_birth" validate:"required"`
 	PlaceOfBirth     string                  `gorm:"column:place_of_birth;type:text;not null" json:"place_of_birth" validate:"required,max=255"`
 	Status           constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
-	IssueDate        time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate       time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	IssueDate        int64                   `gorm:"column:issue_date;type:bigint;not null" json:"issue_date" validate:"required"`
+	ExpiryDate       int64                   `gorm:"column:expiry_date;type:bigint;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
 	HolderDID        string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
 	IssuerDID        string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
 	CreatedAt        time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
@@ -46,7 +46,7 @@ type AcademicDegree struct {
 	GPA            float32                 `gorm:"column:gpa;type:decimal(4,2);not null" json:"gpa" validate:"required,gte=0,lte=4"`
 	Classification string                  `gorm:"column:classification;type:varchar(50);not null" json:"classification" validate:"required"`
 	Status         constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
-	IssueDate      time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
+	IssueDate      int64                   `gorm:"column:issue_date;type:bigint;not null" json:"issue_date" validate:"required"`
 	HolderDID      string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
 	IssuerDID      string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
 	CreatedAt      time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
@@ -67,8 +67,8 @@ type HealthInsurance struct {
 	InsuranceType   string                  `gorm:"column:insurance_type;type:varchar(100);not null" json:"insurance_type" validate:"required,max=100"`
 	Hospital        string                  `gorm:"column:hospital;type:varchar(255);not null" json:"hospital" validate:"required,max=255"`
 	Status          constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
-	StartDate       time.Time               `gorm:"column:start_date;type:date;not null" json:"start_date" validate:"required"`
-	ExpiryDate      time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=StartDate"`
+	StartDate       int64                   `gorm:"column:start_date;type:bigint;not null" json:"start_date" validate:"required"`
+	ExpiryDate      int64                   `gorm:"column:expiry_date;type:bigint;not null" json:"expiry_date" validate:"required,gtefield=StartDate"`
 	HolderDID       string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
 	IssuerDID       string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
 	CreatedAt       time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
@@ -89,8 +89,8 @@ type DriverLicense struct {
 	Class         string                  `gorm:"column:class;type:varchar(20);not null" json:"class" validate:"required"`
 	Point         uint                    `gorm:"column:point;type:smallint;default:12" json:"point" validate:"gte=0,lte=12"`
 	Status        constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
-	IssueDate     time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate    time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	IssueDate     int64                   `gorm:"column:issue_date;type:bigint;not null" json:"issue_date" validate:"required"`
+	ExpiryDate    int64                   `gorm:"column:expiry_date;type:bigint;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
 	HolderDID     string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
 	IssuerDID     string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
 	CreatedAt     time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`
@@ -112,8 +112,8 @@ type Passport struct {
 	Nationality    string                  `gorm:"column:nationality;type:char(3);not null" json:"nationality" validate:"required,len=3,alpha"`
 	MRZ            string                  `gorm:"column:mrz;type:text;not null" json:"mrz" validate:"required,min=72,max=90"`
 	Status         constant.DocumentStatus `gorm:"column:status;type:varchar(30);default:'active'" json:"status" validate:"required"`
-	IssueDate      time.Time               `gorm:"column:issue_date;type:date;not null" json:"issue_date" validate:"required"`
-	ExpiryDate     time.Time               `gorm:"column:expiry_date;type:date;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
+	IssueDate      int64                   `gorm:"column:issue_date;type:bigint;not null" json:"issue_date" validate:"required"`
+	ExpiryDate     int64                   `gorm:"column:expiry_date;type:bigint;not null" json:"expiry_date" validate:"required,gtefield=IssueDate"`
 	HolderDID      string                  `gorm:"column:holder_did;type:varchar(255);index;not null" json:"holder_did" validate:"required,startswith=did:"`
 	IssuerDID      string                  `gorm:"column:issuer_did;type:varchar(255);index;not null" json:"issuer_did" validate:"required,startswith=did:"`
 	CreatedAt      time.Time               `gorm:"autoCreateTime" json:"created_at" validate:"-"`

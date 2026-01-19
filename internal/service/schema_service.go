@@ -401,12 +401,12 @@ func (s *SchemaService) generateJSONLDContext(request *dto.SchemaBuilderDto) map
 	serializationParts := []string{}
 
 	innerContext := map[string]interface{}{
-		"@protected":  true,
 		"@version":    1.1,
+		"@protected":  true,
 		"id":          "@id",
 		"type":        "@type",
-		"iden3-vocab": vocabURN,
 		"xsd":         "http://www.w3.org/2001/XMLSchema#",
+		"iden3-vocab": vocabURN,
 	}
 
 	for _, field := range request.Attributes {
@@ -442,10 +442,12 @@ func (s *SchemaService) generateJSONLDContext(request *dto.SchemaBuilderDto) map
 	return map[string]interface{}{
 		"@context": []interface{}{
 			map[string]interface{}{
-				"@protected": true,
-				"@version":   1.1,
-				"id":         "@id",
-				"type":       "@type",
+				"@version":    1.1,
+				"@protected":  true,
+				"id":          "@id",
+				"type":        "@type",
+				"xsd":         "http://www.w3.org/2001/XMLSchema#",
+				"iden3-vocab": vocabURN,
 				credType: map[string]interface{}{
 					"@id":      credURN,
 					"@context": innerContext,
@@ -491,91 +493,3 @@ func (s *SchemaService) getSchemaHash(url string) (*core.SchemaHash, error) {
 	claim, _ := core.NewSchemaHashFromHex(string(sHashIndex))
 	return &claim, nil
 }
-
-// func (s *SchemaService) ParseClaimFromSchema(ctx context.Context, schemaID string, credentialData map[string]interface{}) (*dto.ClaimDataDto, error) {
-// 	schema, err := s.schemaRepo.FindSchemaByPublicId(ctx, schemaID)
-// 	if err != nil {
-// 		if errors.Is(err, gorm.ErrRecordNotFound) {
-// 			return nil, &constant.SchemaNotFound
-// 		}
-// 		return nil, &constant.InternalServer
-// 	}
-
-// 	claimData := &dto.ClaimDataDto{
-// 		Type:              schema.Type,
-// 		IsMerklized:       schema.IsMerklized,
-// 		CredentialSubject: make(map[string]interface{}),
-// 	}
-
-// 	if schema.SchemaURL != "" {
-// 		schemaHash, err := s.getSchemaHash(schema.SchemaURL)
-
-// 		if err != nil {
-// 			return nil, fmt.Errorf("failed to get schema hash: %w", err)
-// 		}
-
-// 		claimData.SchemaHash = schemaHash.BigInt().String()
-// 	}
-
-// 	for _, attr := range schema.SchemaAttributes {
-// 		value, exists := credentialData[attr.Name]
-// 		if attr.Required && !exists {
-// 			return nil, fmt.Errorf("required field '%s' is missing", attr.Name)
-// 		}
-
-// 		if err := s.validateAttributeType(attr.Type, value); err != nil {
-// 			return nil, fmt.Errorf("invalid type for field '%s': %w", attr.Name, err)
-// 		}
-// 		claimData.CredentialSubject[attr.Name] = value
-// 	}
-
-// 	if subjectID, ok := credentialData["id"].(string); ok {
-// 		claimData.CredentialSubject["id"] = subjectID
-// 	}
-// 	if !schema.IsMerklized {
-// 		claimData.SlotIndexMapping = s.buildSlotIndexMapping(schema.SchemaAttributes)
-// 	}
-
-// 	return claimData, nil
-// }
-
-// func (s *SchemaService) buildSlotIndexMapping(attributes []*schema.SchemaAttribute) map[string]string {
-// 	mapping := make(map[string]string)
-// 	for _, attr := range attributes {
-// 		if attr.Slot != "" {
-// 			mapping[attr.Slot] = attr.Name
-// 		}
-// 	}
-// 	return mapping
-// }
-
-// func (s *SchemaService) validateAttributeType(expectedType string, value interface{}) error {
-// 	switch expectedType {
-// 	case "string":
-// 		if _, ok := value.(string); !ok {
-// 			return fmt.Errorf("expected string, got %T", value)
-// 		}
-// 	case "integer":
-// 		switch value.(type) {
-// 		case int, int32, int64, float64:
-// 			return nil
-// 		default:
-// 			return fmt.Errorf("expected integer, got %T", value)
-// 		}
-// 	case "number":
-// 		switch value.(type) {
-// 		case float32, float64, int, int32, int64:
-// 			return nil
-// 		default:
-// 			return fmt.Errorf("expected number, got %T", value)
-// 		}
-// 	case "boolean":
-// 		if _, ok := value.(bool); !ok {
-// 			return fmt.Errorf("expected boolean, got %T", value)
-// 		}
-// 	default:
-// 		// Cho phép các type khác
-// 		return nil
-// 	}
-// 	return nil
-// }

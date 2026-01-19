@@ -4,11 +4,52 @@ import (
 	"be/internal/domain/proof"
 	"be/internal/shared/constant"
 	"time"
+
+	"github.com/iden3/iden3comm/v2/packers"
+	"github.com/iden3/iden3comm/v2/protocol"
 )
 
 type ProofRequestUpdatedRequestDto struct {
 	Status constant.ProofRequestStatus
 }
+
+func ToAuthorizationRequest(pr *proof.ProofRequest) *protocol.AuthorizationRequestMessage {
+	query := make(map[string]interface{})
+	params := make(map[string]interface{})
+	query["allowedIssuers"] = pr.AllowedIssuers
+	query["context"] = pr.Schema.ContextURL
+	query["type"] = pr.Schema.Type
+	query["credentialSubject"] = pr.CredentialSubject
+	query["proofType"] = pr.ProofType
+	query["skipClaimRevocationCheck"] = pr.SkipClaimRevocationCheck
+	query["groupId"] = pr.GroupID
+	params["nullifierSessionId"] = pr.NullifierSession
+
+	return &protocol.AuthorizationRequestMessage{
+		ID:       pr.ThreadID,
+		From:     pr.VerifierDID,
+		Typ:      packers.MediaTypePlainMessage,
+		Type:     protocol.AuthorizationRequestMessageType,
+		ThreadID: pr.ThreadID,
+		Body: protocol.AuthorizationRequestMessageBody{
+			CallbackURL: pr.CallbackURL,
+			Reason:      pr.Reason,
+			Message:     pr.Message,
+			Scope: []protocol.ZeroKnowledgeProofRequest{
+				{
+					ID:        pr.ScopeID,
+					CircuitID: pr.CircuitID,
+					Query:     query,
+					Params:    params,
+				},
+			},
+		},
+
+		ExpiresTime: pr.ExpiresTime,
+		CreatedTime: pr.CreatedTime,
+	}
+}
+
 type ProofRequestResponseDto struct {
 	PublicID                 string                      `json:"id"`
 	ThreadID                 string                      `json:"threadId"`

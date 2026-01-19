@@ -3,7 +3,6 @@ package dto
 import (
 	"be/internal/domain/document"
 	"be/internal/shared/constant"
-	"time"
 )
 
 // Citizen Identity
@@ -11,10 +10,10 @@ type CitizenIdentityCreatedRequestDto struct {
 	FirstName    string          `json:"firstName"`
 	LastName     string          `json:"lastName"`
 	Gender       constant.Gender `json:"gender"`
-	DateOfBirth  time.Time       `json:"dateOfBirth"`
+	DateOfBirth  int64           `json:"dateOfBirth"`
 	PlaceOfBirth string          `json:"placeOfBirth"`
-	IssueDate    time.Time       `json:"issueDate"`
-	ExpiryDate   time.Time       `json:"expiryDate"`
+	IssueDate    int64           `json:"issueDate"`
+	ExpiryDate   int64           `json:"expiryDate"`
 	HolderDID    string          `json:"holderDID"`
 	IssuerDID    string          `json:"issuerDID"`
 }
@@ -23,10 +22,10 @@ type CitizenIdentityUpdatedRequestDto struct {
 	FirstName    string          `json:"firstName,omitempty"`
 	LastName     string          `json:"lastName,omitempty"`
 	Gender       constant.Gender `json:"gender,omitempty"`
-	DateOfBirth  time.Time       `json:"dateOfBirth,omitempty"`
+	DateOfBirth  int64           `json:"dateOfBirth,omitempty"`
 	PlaceOfBirth string          `json:"placeOfBirth,omitempty"`
-	IssueDate    time.Time       `json:"issueDate,omitempty"`
-	ExpiryDate   time.Time       `json:"expiryDate,omitempty"`
+	IssueDate    int64           `json:"issueDate,omitempty"`
+	ExpiryDate   int64           `json:"expiryDate,omitempty"`
 }
 
 type CitizenIdentityOptionRequestDto struct {
@@ -40,10 +39,10 @@ type CitizenIdentityResponseDto struct {
 	FirstName    string                  `json:"firstName"`
 	LastName     string                  `json:"lastName"`
 	Gender       constant.Gender         `json:"gender"`
-	DateOfBirth  time.Time               `json:"dateOfBirth"`
+	DateOfBirth  int64                   `json:"dateOfBirth"`
 	PlaceOfBirth string                  `json:"placeOfBirth"`
-	IssueDate    time.Time               `json:"issueDate"`
-	ExpiryDate   time.Time               `json:"expiryDate"`
+	IssueDate    int64                   `json:"issueDate"`
+	ExpiryDate   int64                   `json:"expiryDate"`
 	HolderDID    string                  `json:"holderDID"`
 	IssuerDID    string                  `json:"issuerDID"`
 }
@@ -56,7 +55,7 @@ type AcademicDegreeCreatedRequestDto struct {
 	GraduateYear   uint                `json:"graduateYear"`
 	GPA            float32             `json:"gpa"`
 	Classification string              `json:"classification"`
-	IssueDate      time.Time           `json:"issueDate"`
+	IssueDate      int64               `json:"issueDate"`
 	HolderDID      string              `json:"holderDID"`
 	IssuerDID      string              `json:"issuerDID"`
 }
@@ -68,7 +67,7 @@ type AcademicDegreeUpdatedRequestDto struct {
 	GraduateYear   uint                `json:"graduateYear,omitempty"`
 	GPA            float32             `json:"gpa,omitempty"`
 	Classification string              `json:"classification,omitempty"`
-	IssueDate      time.Time           `json:"issueDate,omitempty"`
+	IssueDate      int64               `json:"issueDate,omitempty"`
 }
 
 type AcademicDegreeOptionRequestDto struct {
@@ -85,26 +84,26 @@ type AcademicDegreeResponseDto struct {
 	GraduateYear   uint                    `json:"graduateYear"`
 	GPA            float32                 `json:"gpa"`
 	Classification string                  `json:"classification"`
-	IssueDate      time.Time               `json:"issueDate"`
+	IssueDate      int64                   `json:"issueDate"`
 	HolderDID      string                  `json:"holderDID"`
 	IssuerDID      string                  `json:"issuerDID"`
 }
 
 // Health Insurance
 type HealthInsuranceCreatedRequestDto struct {
-	InsuranceType string    `json:"insuranceType"`
-	Hospital      string    `json:"hospital"`
-	StartDate     time.Time `json:"startDate"`
-	ExpiryDate    time.Time `json:"expiryDate"`
-	HolderDID     string    `json:"holderDID"`
-	IssuerDID     string    `json:"issuerDID"`
+	InsuranceType string `json:"insuranceType"`
+	Hospital      string `json:"hospital"`
+	StartDate     int64  `json:"startDate"`
+	ExpiryDate    int64  `json:"expiryDate"`
+	HolderDID     string `json:"holderDID"`
+	IssuerDID     string `json:"issuerDID"`
 }
 
 type HealthInsuranceUpdatedRequestDto struct {
-	InsuranceType string    `json:"insuranceType,omitempty"`
-	Hospital      string    `json:"hospital,omitempty"`
-	StartDate     time.Time `json:"startDate,omitempty"`
-	ExpiryDate    time.Time `json:"expiryDate,omitempty"`
+	InsuranceType string `json:"insuranceType,omitempty"`
+	Hospital      string `json:"hospital,omitempty"`
+	StartDate     int64  `json:"startDate,omitempty"`
+	ExpiryDate    int64  `json:"expiryDate,omitempty"`
 }
 
 type HealthInsuranceOptionRequestDto struct {
@@ -117,26 +116,26 @@ type HealthInsuranceResponseDto struct {
 	Status          constant.DocumentStatus `json:"status"`
 	InsuranceType   string                  `json:"insuranceType"`
 	Hospital        string                  `json:"hospital"`
-	StartDate       time.Time               `json:"startDate"`
-	ExpiryDate      time.Time               `json:"expiryDate"`
+	StartDate       int64                   `json:"startDate"`
+	ExpiryDate      int64                   `json:"expiryDate"`
 	HolderDID       string                  `json:"holderDID"`
 	IssuerDID       string                  `json:"issuerDID"`
 }
 
 // Driver License
 type DriverLicenseCreatedRequestDto struct {
-	Class      string    `json:"class"`
-	IssueDate  time.Time `json:"issueDate"`
-	ExpiryDate time.Time `json:"expiryDate"`
-	HolderDID  string    `json:"holderDID"`
-	IssuerDID  string    `json:"issuerDID"`
+	Class      string `json:"class"`
+	IssueDate  int64  `json:"issueDate"`
+	ExpiryDate int64  `json:"expiryDate"`
+	HolderDID  string `json:"holderDID"`
+	IssuerDID  string `json:"issuerDID"`
 }
 
 type DriverLicenseUpdatedRequestDto struct {
-	Point      uint      `json:"point,omitempty"`
-	Class      string    `json:"class,omitempty"`
-	IssueDate  time.Time `json:"issueDate,omitempty"`
-	ExpiryDate time.Time `json:"expiryDate,omitempty"`
+	Point      uint   `json:"point,omitempty"`
+	Class      string `json:"class,omitempty"`
+	IssueDate  int64  `json:"issueDate,omitempty"`
+	ExpiryDate int64  `json:"expiryDate,omitempty"`
 }
 
 type DriverLicenseOptionRequestDto struct {
@@ -149,8 +148,8 @@ type DriverLicenseResponseDto struct {
 	Status        constant.DocumentStatus `json:"status"`
 	Point         uint                    `json:"point"`
 	Class         string                  `json:"class"`
-	IssueDate     time.Time               `json:"issueDate"`
-	ExpiryDate    time.Time               `json:"expiryDate"`
+	IssueDate     int64                   `json:"issueDate"`
+	ExpiryDate    int64                   `json:"expiryDate"`
 	HolderDID     string                  `json:"holderDID"`
 	IssuerDID     string                  `json:"issuerDID"`
 }
@@ -160,8 +159,8 @@ type PassportCreatedRequestDto struct {
 	PassportType constant.PassportType `json:"passportType"`
 	Nationality  string                `json:"nationality"`
 	MRZ          string                `json:"mrz"`
-	IssueDate    time.Time             `json:"issueDate"`
-	ExpiryDate   time.Time             `json:"expiryDate"`
+	IssueDate    int64                 `json:"issueDate"`
+	ExpiryDate   int64                 `json:"expiryDate"`
 	HolderDID    string                `json:"holderDID"`
 	IssuerDID    string                `json:"issuerDID"`
 }
@@ -170,8 +169,8 @@ type PassportUpdatedRequestDto struct {
 	PassportType constant.PassportType `json:"passportType,omitempty"`
 	Nationality  string                `json:"nationality,omitempty"`
 	MRZ          string                `json:"mrz,omitempty"`
-	IssueDate    time.Time             `json:"issueDate,omitempty"`
-	ExpiryDate   time.Time             `json:"expiryDate,omitempty"`
+	IssueDate    int64                 `json:"issueDate,omitempty"`
+	ExpiryDate   int64                 `json:"expiryDate,omitempty"`
 }
 
 type PassportOptionRequestDto struct {
@@ -185,8 +184,8 @@ type PassportResponseDto struct {
 	PassportType   constant.PassportType   `json:"passportType"`
 	Nationality    string                  `json:"nationality"`
 	MRZ            string                  `json:"mrz"`
-	IssueDate      time.Time               `json:"issueDate"`
-	ExpiryDate     time.Time               `json:"expiryDate"`
+	IssueDate      int64                   `json:"issueDate"`
+	ExpiryDate     int64                   `json:"expiryDate"`
 	HolderDID      string                  `json:"holderDID"`
 	IssuerDID      string                  `json:"issuerDID"`
 }

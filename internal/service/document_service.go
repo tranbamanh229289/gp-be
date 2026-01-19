@@ -85,7 +85,7 @@ func NewDocumentService(
 
 func (s *DocumentService) CreateCitizenIdentity(ctx context.Context, request *dto.CitizenIdentityCreatedRequestDto) (*dto.CitizenIdentityResponseDto, error) {
 
-	idNumber, _ := utils.GetIdNumber(request.DateOfBirth, string(request.Gender))
+	idNumber, _ := utils.GetIdNumber()
 	citizenCreated, err := s.citizenIdentityRepo.CreateCitizenIdentity(ctx, &document.CitizenIdentity{
 		PublicID:     uuid.New(),
 		IDNumber:     idNumber,
@@ -208,7 +208,7 @@ func (s *DocumentService) CreateAcademicDegree(ctx context.Context, request *dto
 		return nil, err
 	}
 
-	degreeNumber, _ := utils.GetDegreeNumber(request.University, request.Major, request.GraduateYear)
+	degreeNumber, _ := utils.GetDegreeNumber()
 	academicDegreeCreated, err := s.academicDegreeRepo.CreateAcademicDegree(ctx, &document.AcademicDegree{
 		PublicID:       uuid.New(),
 		CID:            citizenIdentity.ID,

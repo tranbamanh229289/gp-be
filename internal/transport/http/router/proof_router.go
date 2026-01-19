@@ -19,6 +19,6 @@ func (r *Router) SetupProofRouter(apiGroup *gin.RouterGroup, proofHandler *handl
 	proofRequestGroup.GET("", proofHandler.GetProofRequests)
 	proofRequestGroup.PATCH("/:id", proofHandler.UpdateProofRequest)
 
-	proofResponseGroup.POST("", proofHandler.CreateProofResponse)
+	proofResponseGroup.POST("verify", proofHandler.VerifyZKProof)
 	proofResponseGroup.GET("", proofHandler.GetProofResponses)
 }

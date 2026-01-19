@@ -135,6 +135,19 @@ var (
 		Status:  http.StatusNotAcceptable,
 	}
 
+	// proof
+	ProofRequestNotFound = Errors{
+		Code:    "PROOF_REQUEST_NOT_FOUND",
+		Message: "Verifiable credential not found error",
+		Status:  http.StatusNotFound,
+	}
+
+	ProofResponseNotFound = Errors{
+		Code:    "PROOF_RESPONSE_NOT_FOUND",
+		Message: "Proof response not found error",
+		Status:  http.StatusNotFound,
+	}
+
 	// state transition
 	StateTransition = Errors{
 		Code:    "STATE_TRANSITION_NOT_FOUND",

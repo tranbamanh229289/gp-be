@@ -42,6 +42,7 @@ var handlerSet = wire.NewSet(
 	handler.NewSchemaHandler,
 	handler.NewCredentialHandler,
 	handler.NewProofHandler,
+	handler.NewCircuitHandler,
 )
 
 // Service Set
@@ -54,6 +55,7 @@ var serviceSet = wire.NewSet(
 	service.NewSchemaService,
 	service.NewIdentityService,
 	service.NewVerifierService,
+	service.NewCircuitService,
 )
 
 // Repository Set
