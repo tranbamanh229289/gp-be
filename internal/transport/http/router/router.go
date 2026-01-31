@@ -17,6 +17,7 @@ type Router struct {
 	schemaHandler     *handler.SchemaHandler
 	proofHandler      *handler.ProofHandler
 	circuitHandler    *handler.CircuitHandler
+	statisticHandler  *handler.StatisticHandler
 	authZkService     service.IAuthZkService
 }
 
@@ -29,6 +30,7 @@ func NewRouter(
 	schemaHandler *handler.SchemaHandler,
 	proofHandler *handler.ProofHandler,
 	circuitHandler *handler.CircuitHandler,
+	statisticHandler *handler.StatisticHandler,
 	authZkService service.IAuthZkService,
 ) *Router {
 	return &Router{
@@ -40,6 +42,7 @@ func NewRouter(
 		schemaHandler:     schemaHandler,
 		proofHandler:      proofHandler,
 		circuitHandler:    circuitHandler,
+		statisticHandler:  statisticHandler,
 		authZkService:     authZkService,
 	}
 }
@@ -53,4 +56,5 @@ func (r *Router) SetupRoutes(engine *gin.Engine) {
 	r.SetupSchemaRouter(apiGroup, r.schemaHandler, r.db)
 	r.SetupProofRouter(apiGroup, r.proofHandler)
 	r.SetupCircuitRouter(apiGroup, r.circuitHandler)
+	r.SetupStatisticRouter(apiGroup, r.statisticHandler)
 }

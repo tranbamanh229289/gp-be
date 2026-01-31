@@ -3,7 +3,7 @@ package handler
 import (
 	"be/internal/service"
 	"be/internal/shared/constant"
-	response "be/internal/shared/helper"
+	"be/internal/shared/helper"
 	"be/internal/transport/http/dto"
 	"fmt"
 
@@ -22,158 +22,134 @@ func NewCredentialHandler(credentialService service.ICredentialService) *Credent
 }
 
 func (h *CredentialHandler) CreateCredentialRequest(c *gin.Context) {
-	user, ok := c.Get("user")
-	if !ok {
-		response.RespondError(c, &constant.InternalServer)
-		return
-	}
-
-	claims, ok := user.(*dto.ZKClaims)
-	if !ok {
-		response.RespondError(c, &constant.InternalServer)
-		return
-	}
-
 	var request protocol.CredentialIssuanceRequestMessage
 	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	credential, err := h.credentialService.CreateCredentialRequest(c.Request.Context(), &request, claims)
+	credential, err := h.credentialService.CreateCredentialRequest(c.Request.Context(), &request)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, credential)
+	helper.RespondSuccess(c, credential)
 }
 
 func (h *CredentialHandler) GetCredentialRequests(c *gin.Context) {
 	user, ok := c.Get("user")
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	claims, ok := user.(*dto.ZKClaims)
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	credentials, err := h.credentialService.GetCredentialRequests(c.Request.Context(), claims)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, credentials)
+	helper.RespondSuccess(c, credentials)
 }
 
 func (h *CredentialHandler) UpdateCredentialRequest(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 	var request dto.CredentialRequestUpdatedRequestDto
 	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
 	err := h.credentialService.UpdateCredentialRequest(c.Request.Context(), id, &request)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, "")
+	helper.RespondSuccess(c, "")
 }
 
 func (h *CredentialHandler) GetVerifiableCredentials(c *gin.Context) {
 	user, ok := c.Get("user")
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	claims, ok := user.(*dto.ZKClaims)
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	res, err := h.credentialService.GetVerifiableCredentials(c.Request.Context(), claims)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, res)
 }
 
 func (h *CredentialHandler) GetVerifiableCredentialById(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 	res, err := h.credentialService.GetVerifiableCredentialById(c.Request.Context(), id)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, res)
 }
 
 func (h *CredentialHandler) UpdateVerifiableCredential(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 	var request dto.VerifiableUpdatedRequestDto
 	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 	err := h.credentialService.UpdateVerifiableCredential(c.Request.Context(), id, &request)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, "")
+	helper.RespondSuccess(c, "")
 }
 
 func (h *CredentialHandler) IssueVerifiableCredential(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 
-	user, ok := c.Get("user")
-	if !ok {
-		response.RespondError(c, &constant.InternalServer)
-		return
-	}
-
-	claims, ok := user.(*dto.ZKClaims)
-	if !ok {
-		response.RespondError(c, &constant.InternalServer)
-		return
-	}
 	var request dto.IssueVerifiableCredentialRequestDto
 	if err := c.ShouldBindJSON(&request); err != nil {
-		fmt.Println(err)
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	res, err := h.credentialService.IssueVerifiableCredential(c.Request.Context(), id, &request, claims)
+	res, err := h.credentialService.IssueVerifiableCredential(c.Request.Context(), id, &request)
 	if err != nil {
 		fmt.Println(err)
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, res)
 
 }

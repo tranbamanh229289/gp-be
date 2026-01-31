@@ -24,6 +24,7 @@ func (r *CredentialRequestRepository) FindCredentialRequestByPublicId(ctx contex
 	if err := r.db.GetGormDB().WithContext(ctx).Preload("Schema").Preload("Issuer").Preload("Holder").Where("public_id = ?", publicId).First(&credentialRequest).Error; err != nil {
 		return nil, err
 	}
+
 	return &credentialRequest, nil
 }
 

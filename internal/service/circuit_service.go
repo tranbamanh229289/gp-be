@@ -9,7 +9,6 @@ import (
 	"be/internal/transport/http/dto"
 	"be/pkg/logger"
 	"context"
-	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -92,7 +91,7 @@ func (s *CircuitService) GetCredentialAtomicQueryV3Input(ctx context.Context, re
 	}
 
 	w3c := dto.ToW3CCredential(vc)
-	input, err := s.generateCredentialAtomicQueryV3(ctx, w3c, query, proofRequest.VerifierDID, vc.Signature)
+	input, err := s.generateCredentialAtomicQueryV3(ctx, &request.ScopeID, w3c, query, proofRequest.VerifierDID, vc.Signature)
 	if err != nil {
 		fmt.Println(err)
 		return nil, &constant.InternalServer
@@ -106,6 +105,7 @@ func (s *CircuitService) GetCredentialAtomicQueryV3Input(ctx context.Context, re
 
 func (s *CircuitService) generateCredentialAtomicQueryV3(
 	ctx context.Context,
+	scopeId *big.Int,
 	vc *verifiable.W3CCredential,
 	query *pubsignals.Query,
 	verifierDIDString string,
@@ -118,13 +118,13 @@ func (s *CircuitService) generateCredentialAtomicQueryV3(
 		return nil, err
 	}
 
-	// Generate request id
-	max := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
-	requestId, err := rand.Int(rand.Reader, max)
-	if err != nil {
+	// // Generate request id
+	// max := new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil)
+	// requestId, err := rand.Int(rand.Reader, max)
+	// if err != nil {
 
-		return nil, err
-	}
+	// 	return nil, err
+	// }
 
 	// Get user ID from credential subject
 	raw, ok := vc.CredentialSubject["id"]
@@ -309,7 +309,7 @@ func (s *CircuitService) generateCredentialAtomicQueryV3(
 	// Build circuit inputs
 	s.logger.Debug("Building circuit inputs")
 	inputs := circuits.AtomicQueryV3Inputs{
-		RequestID:                requestId,
+		RequestID:                scopeId,
 		ID:                       &userId,
 		ProfileNonce:             big.NewInt(0),
 		ClaimSubjectProfileNonce: big.NewInt(0),

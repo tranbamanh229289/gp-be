@@ -3,7 +3,7 @@ package handler
 import (
 	"be/internal/service"
 	"be/internal/shared/constant"
-	response "be/internal/shared/helper"
+	"be/internal/shared/helper"
 	"be/internal/transport/http/dto"
 
 	"github.com/gin-gonic/gin"
@@ -23,96 +23,124 @@ func NewProofHandler(proofService service.IProofService) *ProofHandler {
 func (h *ProofHandler) CreateProofRequest(c *gin.Context) {
 	var request protocol.AuthorizationRequestMessage
 	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
+
 	user, ok := c.Get("user")
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 	claims, ok := user.(*dto.ZKClaims)
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	if claims.DID != request.From {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 	}
 
 	res, err := h.proofService.CreateProofRequest(c.Request.Context(), &request)
 
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, res)
 }
 
 func (h *ProofHandler) GetProofRequests(c *gin.Context) {
 	user, ok := c.Get("user")
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 	claims, ok := user.(*dto.ZKClaims)
 	if !ok {
-		response.RespondError(c, &constant.InternalServer)
+		helper.RespondError(c, &constant.InternalServer)
 		return
 	}
 
 	res, err := h.proofService.GetProofRequests(c.Request.Context(), claims)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, res)
 }
 
 func (h *ProofHandler) UpdateProofRequest(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		response.RespondError(c, &constant.BadRequest)
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
 	var request dto.ProofRequestUpdatedRequestDto
 	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 	err := h.proofService.UpdateProofRequest(c.Request.Context(), id, &request)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, "")
+	helper.RespondSuccess(c, "")
 }
 
 func (h *ProofHandler) VerifyZKProof(c *gin.Context) {
-	var request protocol.AuthorizationResponseMessage
-	if err := c.ShouldBindJSON(&request); err != nil {
-		response.RespondError(c, err)
+	id := c.Param("id")
+	if id == "" {
+		helper.RespondError(c, &constant.BadRequest)
 		return
 	}
-	res, err := h.proofService.VerifyZKProof(c.Request.Context(), &request)
+	resp, err := h.proofService.VerifyZKProof(c.Request.Context(), id)
 	if err != nil {
-		response.RespondError(c, err)
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, res)
+	helper.RespondSuccess(c, resp)
 }
 
-func (h *ProofHandler) GetProofResponses(c *gin.Context) {
-	res, err := h.proofService.GetProofResponses(c.Request.Context())
-	if err != nil {
-		response.RespondError(c, err)
+func (h *ProofHandler) CreateProofSubmission(c *gin.Context) {
+	var request protocol.AuthorizationResponseMessage
+	if err := c.ShouldBindJSON(&request); err != nil {
+		helper.RespondError(c, err)
 		return
 	}
 
-	response.RespondSuccess(c, res)
+	res, err := h.proofService.CreateProofSubmission(c.Request.Context(), &request)
+	if err != nil {
+		helper.RespondError(c, err)
+		return
+	}
+
+	helper.RespondSuccess(c, res)
+}
+
+func (h *ProofHandler) GetProofSubmissions(c *gin.Context) {
+	user, ok := c.Get("user")
+	if !ok {
+		helper.RespondError(c, &constant.InternalServer)
+		return
+	}
+	claims, ok := user.(*dto.ZKClaims)
+	if !ok {
+		helper.RespondError(c, &constant.InternalServer)
+		return
+	}
+
+	res, err := h.proofService.GetProofSubmissions(c.Request.Context(), claims)
+	if err != nil {
+		helper.RespondError(c, err)
+		return
+	}
+
+	helper.RespondSuccess(c, res)
 }

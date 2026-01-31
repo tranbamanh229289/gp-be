@@ -3,8 +3,11 @@ package dto
 import (
 	"be/internal/domain/proof"
 	"be/internal/shared/constant"
+	"encoding/json"
+	"fmt"
 	"time"
 
+	"github.com/iden3/go-rapidsnark/types"
 	"github.com/iden3/iden3comm/v2/packers"
 	"github.com/iden3/iden3comm/v2/protocol"
 )
@@ -13,7 +16,7 @@ type ProofRequestUpdatedRequestDto struct {
 	Status constant.ProofRequestStatus
 }
 
-func ToAuthorizationRequest(pr *proof.ProofRequest) *protocol.AuthorizationRequestMessage {
+func ToAuthorizationRequest(pr *proof.ProofRequest) protocol.AuthorizationRequestMessage {
 	query := make(map[string]interface{})
 	params := make(map[string]interface{})
 	query["allowedIssuers"] = pr.AllowedIssuers
@@ -25,7 +28,7 @@ func ToAuthorizationRequest(pr *proof.ProofRequest) *protocol.AuthorizationReque
 	query["groupId"] = pr.GroupID
 	params["nullifierSessionId"] = pr.NullifierSession
 
-	return &protocol.AuthorizationRequestMessage{
+	return protocol.AuthorizationRequestMessage{
 		ID:       pr.ThreadID,
 		From:     pr.VerifierDID,
 		Typ:      packers.MediaTypePlainMessage,
@@ -100,12 +103,74 @@ func ToProofRequestResponseDto(entity *proof.ProofRequest) *ProofRequestResponse
 	}
 }
 
-type ProofVerificationResponseDto struct {
-	Status     constant.ProofResponseStatus `json:"status"`
-	Reason     string                       `json:"reason"`
-	Message    string                       `json:"message"`
-	ThreadID   string                       `json:"threadId"`
-	HolderDID  string                       `json:"holderDID"`
-	HolderName string                       `json:"holderName"`
-	VerifiedAt time.Time                    `json:"verifiedAt"`
+type ProofSubmissionResponseDto struct {
+	PublicID     string                         `json:"id"`
+	RequestID    string                         `json:"requestId"`
+	ThreadID     string                         `json:"threadId"`
+	HolderDID    string                         `json:"holderDID"`
+	HolderName   string                         `json:"holderName"`
+	VerifierDID  string                         `json:"verifierDID"`
+	VerifierName string                         `json:"verifierName"`
+	CircuitID    string                         `json:"circuitId"`
+	ScopeID      uint32                         `json:"scopeId"`
+	Message      string                         `json:"message"`
+	ZKProof      types.ZKProof                  `json:"zkProof"`
+	CreatedTime  *int64                         `json:"createdTime"`
+	ExpiresTime  *int64                         `json:"expiresTime"`
+	Status       constant.ProofSubmissionStatus `json:"status"`
+	VerifiedDate *time.Time                     `json:"verifiedDate"`
+}
+
+func ToAuthorizationResponse(ps *proof.ProofSubmission) protocol.AuthorizationResponseMessage {
+	var zkProof types.ZKProof
+	err := json.Unmarshal(ps.ZKProof, &zkProof)
+	if err != nil {
+		fmt.Println("zk proof unmarshal false %w", err)
+	}
+
+	return protocol.AuthorizationResponseMessage{
+		ID:       ps.ThreadID,
+		Typ:      packers.MediaTypePlainMessage,
+		Type:     protocol.AuthorizationResponseMessageType,
+		ThreadID: ps.ThreadID,
+		From:     ps.HolderDID,
+		To:       ps.ProofRequest.VerifierDID,
+		Body: protocol.AuthorizationMessageResponseBody{
+			Message: ps.Message,
+			Scope: []protocol.ZeroKnowledgeProofResponse{
+				{
+					ID:        ps.ScopeID,
+					CircuitID: ps.CircuitID,
+					ZKProof:   zkProof,
+				},
+			},
+		},
+		CreatedTime: ps.CreatedTime,
+		ExpiresTime: ps.ExpiresTime,
+	}
+}
+
+func ToProofSubmissionResponseDto(entity *proof.ProofSubmission) *ProofSubmissionResponseDto {
+	var zkProof types.ZKProof
+	err := json.Unmarshal(entity.ZKProof, &zkProof)
+	if err != nil {
+		fmt.Println("zk proof unmarshal false %w", err)
+	}
+	return &ProofSubmissionResponseDto{
+		PublicID:     entity.PublicID.String(),
+		RequestID:    entity.ProofRequest.PublicID.String(),
+		ThreadID:     entity.ThreadID,
+		HolderDID:    entity.HolderDID,
+		HolderName:   entity.Holder.Name,
+		VerifierDID:  entity.ProofRequest.VerifierDID,
+		VerifierName: entity.ProofRequest.Verifier.Name,
+		Message:      entity.Message,
+		ScopeID:      entity.ScopeID,
+		CircuitID:    entity.CircuitID,
+		ZKProof:      zkProof,
+		CreatedTime:  entity.CreatedTime,
+		ExpiresTime:  entity.ExpiresTime,
+		VerifiedDate: entity.VerifiedDate,
+		Status:       entity.Status,
+	}
 }

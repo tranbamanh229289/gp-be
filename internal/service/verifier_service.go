@@ -624,7 +624,7 @@ func (v *Verifier) VerifyAuthResponse(
 		if proofRequest.Params == nil {
 			proofRequest.Params = make(map[string]interface{})
 		}
-		verifierDID, err := w3c.ParseDID(request.From) // TODO: this is assuming that response.TO is always DID.
+		verifierDID, err := w3c.ParseDID(request.From)
 		if err != nil {
 			return err
 		}

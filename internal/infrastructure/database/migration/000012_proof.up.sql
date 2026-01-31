@@ -25,18 +25,24 @@ CREATE TABLE proof_requests (
 CREATE INDEX idx_proof_requests_public_id ON proof_requests(public_id);
 CREATE INDEX idx_proof_requests_verifier_did ON proof_requests(verifier_did);
 
-CREATE TABLE proof_responses (
-    id          SERIAL PRIMARY KEY,
-    public_id   UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
-    request_id  BIGINT NOT NULL REFERENCES proof_requests(id) ON DELETE CASCADE ON UPDATE RESTRICT,
-    holder_did  VARCHAR(255) NOT NULL CHECK (holder_did LIKE 'did:%'),
-    thread_id   VARCHAR(255) NOT NULL,
-    status      VARCHAR(50) NOT NULL DEFAULT 'pending'
-        CHECK (status IN ('pending', 'success', 'failed')),
-    created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE proof_submissions (
+    id                              SERIAL PRIMARY KEY,
+    public_id                       UUID NOT NULL UNIQUE DEFAULT gen_random_uuid(),
+    request_id                      BIGINT NOT NULL REFERENCES proof_requests(id) ON DELETE CASCADE ON UPDATE RESTRICT,
+    holder_did                      VARCHAR(255) NOT NULL CHECK (holder_did LIKE 'did:%'),
+    thread_id                       VARCHAR(255) NOT NULL,
+    status                          VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'success', 'failed')),
+    message                         TEXT,
+    scope_id                        INTEGER,
+    circuit_id                      VARCHAR(100) NOT NULL,
+    zk_proof                        BYTEA NOT NULL,
+    created_time                    BIGINT,
+    expires_time                    BIGINT,
+    verified_date                   TIMESTAMPTZ,
+    created_at                      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at                      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_proof_responses_public_id ON proof_responses(public_id);
-CREATE INDEX idx_proof_responses_request_id ON proof_responses(request_id);
-CREATE INDEX idx_proof_responses_holder_did ON proof_responses(holder_did);
+CREATE INDEX idx_proof_submissions_public_id ON proof_submissions(public_id);
+CREATE INDEX idx_proof_submissions_request_id ON proof_submissions(request_id);
+CREATE INDEX idx_proof_submissions_holder_did ON proof_submissions(holder_did);

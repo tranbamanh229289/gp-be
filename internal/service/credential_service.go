@@ -5,29 +5,28 @@ import (
 	"be/internal/domain/credential"
 	"be/internal/domain/schema"
 	"be/internal/shared/constant"
+	"be/internal/shared/helper"
 	"be/internal/transport/http/dto"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/iden3/go-schema-processor/v2/loaders"
 	"github.com/iden3/go-schema-processor/v2/merklize"
-	"github.com/iden3/go-schema-processor/v2/processor"
 	"github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/iden3/iden3comm/v2/protocol"
+	"github.com/piprate/json-gold/ld"
 	"gorm.io/gorm"
 )
 
 type ICredentialService interface {
 	GetCredentialRequests(ctx context.Context, claims *dto.ZKClaims) ([]*dto.CredentialRequestResponseDto, error)
-	CreateCredentialRequest(ctx context.Context, request *protocol.CredentialIssuanceRequestMessage, claims *dto.ZKClaims) (*dto.CredentialRequestResponseDto, error)
+	CreateCredentialRequest(ctx context.Context, request *protocol.CredentialIssuanceRequestMessage) (*dto.CredentialRequestResponseDto, error)
 	UpdateCredentialRequest(ctx context.Context, id string, request *dto.CredentialRequestUpdatedRequestDto) error
 	GetVerifiableCredentials(ctx context.Context, claims *dto.ZKClaims) ([]*verifiable.W3CCredential, error)
 	GetVerifiableCredentialById(ctx context.Context, id string) (*verifiable.W3CCredential, error)
-	IssueVerifiableCredential(ctx context.Context, id string, request *dto.IssueVerifiableCredentialRequestDto, claims *dto.ZKClaims) (*verifiable.W3CCredential, error)
+	IssueVerifiableCredential(ctx context.Context, id string, request *dto.IssueVerifiableCredentialRequestDto) (*verifiable.W3CCredential, error)
 	UpdateVerifiableCredential(ctx context.Context, id string, request *dto.VerifiableUpdatedRequestDto) error
 }
 
@@ -38,7 +37,7 @@ type CredentialService struct {
 	credentialRequestRepo credential.ICredentialRequestRepository
 	vcRepo                credential.IVerifiableCredentialRepository
 	schemaRepo            schema.ISchemaRepository
-	processor             *processor.Processor
+	loader                ld.DocumentLoader
 }
 
 func NewCredentialService(
@@ -56,14 +55,11 @@ func NewCredentialService(
 		credentialRequestRepo: credentialRequestRepo,
 		vcRepo:                vcRepo,
 		schemaRepo:            schemaRepo,
+		loader:                helper.NewCacheLoader(nil),
 	}
 }
 
-func (s *CredentialService) CreateCredentialRequest(ctx context.Context, request *protocol.CredentialIssuanceRequestMessage, claims *dto.ZKClaims) (*dto.CredentialRequestResponseDto, error) {
-	if request.From != claims.DID {
-		return nil, &constant.BadRequest
-	}
-
+func (s *CredentialService) CreateCredentialRequest(ctx context.Context, request *protocol.CredentialIssuanceRequestMessage) (*dto.CredentialRequestResponseDto, error) {
 	schemaHash := request.Body.Schema.Hash
 	schemaEntity, err := s.schemaRepo.FindSchemaByHash(ctx, schemaHash)
 	if err != nil {
@@ -87,11 +83,6 @@ func (s *CredentialService) CreateCredentialRequest(ctx context.Context, request
 			return nil, &constant.IdentityNotFound
 		}
 		return nil, &constant.InternalServer
-	}
-
-	var claimData map[string]interface{}
-	if err := json.Unmarshal(request.Body.Data, &claimData); err != nil {
-		return nil, errors.New("unmarshal failed")
 	}
 
 	credentialRequestCreated, err := s.credentialRequestRepo.CreateCredentialRequest(ctx, &credential.CredentialRequest{
@@ -207,7 +198,7 @@ func (s *CredentialService) GetVerifiableCredentialById(ctx context.Context, id 
 	return dto.ToW3CCredential(vc), nil
 }
 
-func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id string, request *dto.IssueVerifiableCredentialRequestDto, claims *dto.ZKClaims) (*verifiable.W3CCredential, error) {
+func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id string, request *dto.IssueVerifiableCredentialRequestDto) (*verifiable.W3CCredential, error) {
 	credentialRequestEntity, err := s.credentialRequestRepo.FindCredentialRequestByPublicId(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -216,12 +207,9 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 		return nil, &constant.InternalServer
 	}
 
-	if credentialRequestEntity.IssuerDID != claims.DID {
-		return nil, &constant.BadRequest
-	}
-
 	issuanceDate := time.Now().UTC()
 	expirationDate := time.Unix(credentialRequestEntity.Expiration, 0).UTC()
+
 	verifiableCredential := &verifiable.W3CCredential{
 		ID: "urn:uuid:" + uuid.New().String(),
 		Context: []string{
@@ -252,9 +240,8 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 		MerklizedRootPosition: verifiable.CredentialMerklizedRootPositionNone,
 		Updatable:             false,
 	}
-
-	loader := loaders.NewDocumentLoader(nil, "")
-	options.MerklizerOpts = []merklize.MerklizeOption{merklize.WithDocumentLoader(loader)}
+	// documentLoader := ld.NewDefaultDocumentLoader(nil)
+	options.MerklizerOpts = []merklize.MerklizeOption{merklize.WithDocumentLoader(s.loader)}
 
 	coreClaim, err := verifiableCredential.ToCoreClaim(ctx, options)
 	if err != nil {
@@ -368,10 +355,12 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal core claim proof: %w", err)
 	}
+
 	authProofJSON, err := authIncProof.MarshalJSON()
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal auth claim proof: %w", err)
 	}
+
 	_, err = s.vcRepo.CreateVerifiableCredential(ctx, &credential.VerifiableCredential{
 		PublicID:          uuid.New(),
 		CRID:              credentialRequestEntity.ID,
@@ -400,6 +389,12 @@ func (s *CredentialService) IssueVerifiableCredential(ctx context.Context, id st
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	changes := map[string]interface{}{"status": constant.CredentialRequestApprovedStatus}
+	err = s.credentialRequestRepo.UpdateCredentialRequest(ctx, credentialRequestEntity, changes)
+	if err != nil {
+		return nil, &constant.InternalServer
 	}
 
 	return verifiableCredential, nil

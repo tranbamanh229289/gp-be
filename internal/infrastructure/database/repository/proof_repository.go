@@ -27,7 +27,7 @@ func (r *ProofRepository) FindProofRequestByPublicId(ctx context.Context, public
 
 func (r *ProofRepository) FindProofRequestByThreadId(ctx context.Context, threadId string) (*proof.ProofRequest, error) {
 	var entity proof.ProofRequest
-	if err := r.db.GetGormDB().WithContext(ctx).Where("thread_id = ?", threadId).First(&entity).Error; err != nil {
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Verifier").Preload("Schema").Where("thread_id = ?", threadId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
@@ -64,26 +64,50 @@ func (r *ProofRepository) UpdateProofRequest(ctx context.Context, entity *proof.
 	return nil
 }
 
-func (r *ProofRepository) FindProofResponseByPublicId(ctx context.Context, publicId string) (*proof.ProofResponse, error) {
-	var entity proof.ProofResponse
-	if err := r.db.GetGormDB().WithContext(ctx).First(&entity).Where("public_id = ?", publicId).Error; err != nil {
+func (r *ProofRepository) FindProofSubmissionByPublicId(ctx context.Context, publicId string) (*proof.ProofSubmission, error) {
+	var entity proof.ProofSubmission
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Holder").Preload("ProofRequest").Where("public_id = ?", publicId).First(&entity).Error; err != nil {
 		return nil, err
 	}
 	return &entity, nil
 }
 
-func (r *ProofRepository) FindAllProofResponses(ctx context.Context) ([]*proof.ProofResponse, error) {
-	var entity []*proof.ProofResponse
-	if err := r.db.GetGormDB().WithContext(ctx).Find(&entity).Error; err != nil {
+func (r *ProofRepository) FindAllProofSubmissions(ctx context.Context) ([]*proof.ProofSubmission, error) {
+	var entity []*proof.ProofSubmission
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("ProofRequest").Preload("Holder").Find(&entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
 }
 
-func (r *ProofRepository) CreateProofResponse(ctx context.Context, entity *proof.ProofResponse) (*proof.ProofResponse, error) {
+func (r *ProofRepository) FindAllProofSubmissionsByHolderDID(ctx context.Context, did string) ([]*proof.ProofSubmission, error) {
+	var entity []*proof.ProofSubmission
+	if err := r.db.GetGormDB().WithContext(ctx).Preload("Holder").Where("holder_did = ?", did).Preload("ProofRequest.Verifier").Find(&entity).Error; err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
+func (r *ProofRepository) FindAllProofSubmissionsByVerifierDID(ctx context.Context, did string) ([]*proof.ProofSubmission, error) {
+	var entity []*proof.ProofSubmission
+	if err := r.db.GetGormDB().WithContext(ctx).Joins("ProofRequest").Where("verifier_did = ?", did).Preload("ProofRequest.Verifier").Preload("Holder").Find(&entity).Error; err != nil {
+		return nil, err
+	}
+	return entity, nil
+}
+
+func (r *ProofRepository) CreateProofSubmission(ctx context.Context, entity *proof.ProofSubmission) (*proof.ProofSubmission, error) {
 	db := helper.WithTx(ctx, r.db.GetGormDB())
 	if err := db.Create(entity).Error; err != nil {
 		return nil, err
 	}
 	return entity, nil
+}
+
+func (r *ProofRepository) UpdateProofSubmission(ctx context.Context, entity *proof.ProofSubmission, changes map[string]interface{}) error {
+	db := helper.WithTx(ctx, r.db.GetGormDB())
+	if err := db.Model(entity).Updates(changes).Error; err != nil {
+		return err
+	}
+	return nil
 }

@@ -161,4 +161,11 @@ var (
 		Message: "Proof not found error",
 		Status:  http.StatusNotFound,
 	}
+
+	// statistic
+	StatisticNotFound = Errors{
+		Code:    "STATISTIC_NOT_FOUND",
+		Message: "Statistic not found error",
+		Status:  http.StatusNotFound,
+	}
 )

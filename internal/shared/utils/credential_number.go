@@ -181,7 +181,7 @@ func GetLicenseNumber(class string) (string, error) {
 	return class + "-" + serial, err
 }
 
-func GetPassportNumber(nation string) (string, error) {
-	serial, err := RandomDigits(11)
-	return nation + "-" + serial, err
+func GetPassportNumber() (string, error) {
+	serial, err := RandomDigits(15)
+	return serial, err
 }

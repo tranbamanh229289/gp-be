@@ -94,26 +94,26 @@ type ProofRequestStatus string
 
 const (
 	ProofRequestActiveStatus    ProofRequestStatus = "active"
-	ProofRequestExpiredStatus   ProofRequestStatus = "expired"
 	ProofRequestCancelledStatus ProofRequestStatus = "cancelled"
+	ProofRequestExpiredStatus   ProofRequestStatus = "expired"
 )
 
-type ProofResponseStatus string
+type ProofSubmissionStatus string
 
 const (
-	ProofResponsePendingStatus ProofResponseStatus = "pending"
-	ProofResponseSuccessStatus ProofResponseStatus = "success"
-	ProofResponseFailedStatus  ProofResponseStatus = "failed"
+	ProofSubmissionPendingStatus ProofSubmissionStatus = "pending"
+	ProofSubmissionSuccessStatus ProofSubmissionStatus = "success"
+	ProofSubmissionFailedStatus  ProofSubmissionStatus = "failed"
+	ProofSubmissionExpiredStatus ProofSubmissionStatus = "expired"
 )
 
 // verifiable credential
 type VerifiableCredentialStatus string
 
 const (
-	VerifiableCredentialNotSignedStatus VerifiableCredentialStatus = "notSigned"
-	VerifiableCredentialIssuedStatus    VerifiableCredentialStatus = "issued"
-	VerifiableCredentialRevokedStatus   VerifiableCredentialStatus = "revoked"
-	VerifiableCredentialExpiredStatus   VerifiableCredentialStatus = "expired"
+	VerifiableCredentialIssuedStatus  VerifiableCredentialStatus = "issued"
+	VerifiableCredentialRevokedStatus VerifiableCredentialStatus = "revoked"
+	VerifiableCredentialExpiredStatus VerifiableCredentialStatus = "expired"
 )
 
 // credential request
@@ -123,6 +123,7 @@ const (
 	CredentialRequestPendingStatus  CredentialRequestStatus = "pending"
 	CredentialRequestApprovedStatus CredentialRequestStatus = "approved"
 	CredentialRequestRejectedStatus CredentialRequestStatus = "rejected"
+	CredentialRequestExpiredStatus  CredentialRequestStatus = "expired"
 )
 
 // schema

@@ -12,13 +12,14 @@ func (r *Router) SetupProofRouter(apiGroup *gin.RouterGroup, proofHandler *handl
 	proofGroup := apiGroup.Group("proofs")
 	proofGroup.Use(middleware.AuthenticateMiddleware(r.authZkService))
 
-	proofRequestGroup := proofGroup.Group("request")
-	proofResponseGroup := proofGroup.Group("response")
+	proofRequestGroup := proofGroup.Group("requests")
+	proofSubmissionGroup := proofGroup.Group("submissions")
 
 	proofRequestGroup.POST("", middleware.AuthorizeMiddleware([]constant.IdentityRole{constant.IdentityVerifierRole}), proofHandler.CreateProofRequest)
-	proofRequestGroup.GET("", proofHandler.GetProofRequests)
 	proofRequestGroup.PATCH("/:id", proofHandler.UpdateProofRequest)
+	proofRequestGroup.GET("", proofHandler.GetProofRequests)
 
-	proofResponseGroup.POST("verify", proofHandler.VerifyZKProof)
-	proofResponseGroup.GET("", proofHandler.GetProofResponses)
+	proofSubmissionGroup.POST("", proofHandler.CreateProofSubmission)
+	proofSubmissionGroup.PATCH("/:id", proofHandler.VerifyZKProof)
+	proofSubmissionGroup.GET("", proofHandler.GetProofSubmissions)
 }

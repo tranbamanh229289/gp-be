@@ -567,7 +567,7 @@ func (s *DocumentService) CreatePassport(ctx context.Context, request *dto.Passp
 		return nil, err
 	}
 
-	passportNumber, _ := utils.GetPassportNumber(request.Nationality)
+	passportNumber, _ := utils.GetPassportNumber()
 	passportCreated, err := s.passportRepo.CreatePassport(ctx, &document.Passport{
 		PublicID:       uuid.New(),
 		CID:            citizenIdentity.ID,

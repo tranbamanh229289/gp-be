@@ -4,7 +4,7 @@ CREATE TABLE passports (
     cid INTEGER NOT NULL REFERENCES citizen_identities(id) ON UPDATE CASCADE ON DELETE RESTRICT,
     passport_number VARCHAR(15) NOT NULL UNIQUE,
     passport_type VARCHAR(100) NOT NULL CHECK (passport_type IN ('ordinary', 'diplomatic', 'official')),
-    nationality CHAR(3) NOT NULL,
+    nationality VARCHAR(100) NOT NULL,
     mrz VARCHAR(100) NOT NULL, 
     status VARCHAR(30) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'expired', 'revoked')),
     issue_date BIGINT NOT NULL,

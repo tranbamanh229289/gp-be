@@ -72,11 +72,14 @@ func InitializeApplication() (App, error) {
 	iSchemaService := service.NewSchemaService(configConfig, pinata, iIdentityRepository, iSchemaRepository, iSchemaAttributeRepository)
 	schemaHandler := handler.NewSchemaHandler(iSchemaService)
 	iProofRepository := repository.NewProofRepository(postgresDB)
-	iProofService := service.NewProofService(configConfig, zapLogger, iVerifierService, iIdentityRepository, iSchemaRepository, iProofRepository)
+	iProofService := service.NewProofService(configConfig, zapLogger, iVerifierService, iIdentityService, iSchemaRepository, iProofRepository)
 	proofHandler := handler.NewProofHandler(iProofService)
 	iCircuitService := service.NewCircuitService(configConfig, zapLogger, iProofRepository, iVerifiableCredentialRepository, iIdentityService)
 	circuitHandler := handler.NewCircuitHandler(iCircuitService, configConfig, zapLogger)
-	routerRouter := router.NewRouter(postgresDB, authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler, circuitHandler, iAuthZkService)
+	iStatisticRepository := repository.NewStatisticRepository(postgresDB, configConfig)
+	iStatisticService := service.NewStatisticService(configConfig, iStatisticRepository)
+	statisticHandler := handler.NewStatisticHandler(iStatisticService)
+	routerRouter := router.NewRouter(postgresDB, authJWTHandler, authZkHandler, documentHandler, credentialHandler, schemaHandler, proofHandler, circuitHandler, statisticHandler, iAuthZkService)
 	middlewareMiddleware := middleware.NewMiddleware(configConfig, zapLogger)
 	server := NewServer(configConfig, zapLogger)
 	app := App{
@@ -112,13 +115,13 @@ var ipfsSet = wire.NewSet(ipfs.NewPinata)
 var etherSet = wire.NewSet(ether.NewEther)
 
 // Handler Set
-var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewDocumentHandler, handler.NewSchemaHandler, handler.NewCredentialHandler, handler.NewProofHandler, handler.NewCircuitHandler)
+var handlerSet = wire.NewSet(handler.NewAuthJWTHandler, handler.NewAuthZkHandler, handler.NewDocumentHandler, handler.NewSchemaHandler, handler.NewCredentialHandler, handler.NewProofHandler, handler.NewCircuitHandler, handler.NewStatisticHandler)
 
 // Service Set
-var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewCredentialService, service.NewDocumentService, service.NewProofService, service.NewSchemaService, service.NewIdentityService, service.NewVerifierService, service.NewCircuitService)
+var serviceSet = wire.NewSet(service.NewAuthJWTService, service.NewAuthZkService, service.NewCredentialService, service.NewDocumentService, service.NewProofService, service.NewSchemaService, service.NewIdentityService, service.NewVerifierService, service.NewCircuitService, service.NewStatisticService)
 
 // Repository Set
-var repositorySet = wire.NewSet(repository.NewAcademicDegreeRepository, repository.NewCitizenIdentityRepository, repository.NewCredentialRequestRepository, repository.NewDriverLicenseRepository, repository.NewHealthInsuranceRepository, repository.NewIdentityRepository, repository.NewMerkletreeRepository, repository.NewPassportRepository, repository.NewProofRepository, repository.NewSchemaAttributeRepository, repository.NewSchemaRepository, repository.NewStateTransitionRepository, repository.NewUserRepository, repository.NewVerifiableCredentialRepository)
+var repositorySet = wire.NewSet(repository.NewAcademicDegreeRepository, repository.NewCitizenIdentityRepository, repository.NewCredentialRequestRepository, repository.NewDriverLicenseRepository, repository.NewHealthInsuranceRepository, repository.NewIdentityRepository, repository.NewMerkletreeRepository, repository.NewPassportRepository, repository.NewProofRepository, repository.NewSchemaAttributeRepository, repository.NewSchemaRepository, repository.NewStateTransitionRepository, repository.NewUserRepository, repository.NewVerifiableCredentialRepository, repository.NewStatisticRepository)
 
 // Router Set
 var routerSet = wire.NewSet(router.NewRouter)
