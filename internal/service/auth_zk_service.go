@@ -72,8 +72,10 @@ func (s *AuthZkService) Login(ctx context.Context, authResponse *protocol.Author
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal auth request")
 	}
-
+	start := time.Now()
 	err = s.verifier.VerifyAuthResponse(ctx, *authResponse, authRequest)
+	elapsed := time.Since(start)
+	fmt.Println("Elapsed ZK Login:", elapsed)
 	if err != nil {
 		s.logger.Info(fmt.Sprintf("Unauthorize: %s", err))
 		return nil, fmt.Errorf("request is unauthorize")

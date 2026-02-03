@@ -210,8 +210,10 @@ func (s *ProofService) VerifyZKProof(ctx context.Context, id string) (*dto.Proof
 
 	var proofRequest protocol.AuthorizationRequestMessage = dto.ToAuthorizationRequest(proofRequestEntity)
 	var proofSubmission protocol.AuthorizationResponseMessage = dto.ToAuthorizationResponse(proofSubmissionEntity)
-	fmt.Println(proofRequest)
+	start := time.Now()
 	err = s.verifier.VerifyAuthResponse(ctx, proofSubmission, proofRequest)
+	elapsed := time.Since(start)
+	fmt.Println("Elapsed zk verification:", elapsed)
 	var changes map[string]interface{}
 	var status constant.ProofSubmissionStatus
 	if err != nil {
